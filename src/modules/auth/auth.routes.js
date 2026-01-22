@@ -1,0 +1,24 @@
+import express from 'express';
+import {
+  login,
+  logout,
+  forgotPassword,
+  resetPassword,
+  sendRegisterOtp,
+  verifyRegisterOtp,
+  me
+} from './auth.controller.js';
+import { protect } from '../../middlewares/auth.middleware.js';
+
+const router = express.Router();
+
+router.post('/register/send-otp', sendRegisterOtp);
+router.post('/register/verify-otp', verifyRegisterOtp);
+
+router.get('/me', protect, me);
+router.post('/login', login);
+router.post('/logout', logout);
+router.post('/forgot-password', forgotPassword);
+router.put('/reset-password/:token', resetPassword);
+
+export default router;
