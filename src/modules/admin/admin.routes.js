@@ -25,5 +25,4 @@ router.put('/reset-password/:token', adminResetPassword);
 router.put('/profile', protectAdmin, updateAdminProfile);
 
 
-
 export default router;
