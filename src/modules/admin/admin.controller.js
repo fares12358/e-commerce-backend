@@ -128,7 +128,7 @@ export const adminForgotPassword = async (req, res) => {
     const resetToken = admin.getResetToken();
     await admin.save({ validateBeforeSave: false });
 
-    const resetUrl = `${process.env.CLIENT_URL}/admin/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`;
 
     await sendEmail({
       to: admin.email,

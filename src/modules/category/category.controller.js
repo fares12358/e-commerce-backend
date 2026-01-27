@@ -4,6 +4,7 @@ import {
   updateImage,
   deleteImage
 } from '../../utils/cloudinary.js';
+import Product from '../product/product.model.js';
 
 /* ================= CREATE CATEGORY ================= */
 export const createCategory = async (req, res) => {
@@ -43,7 +44,7 @@ export const createCategory = async (req, res) => {
 /* ================= GET ALL CATEGORIES ================= */
 export const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true })
+    const categories = await Category.find()
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -102,7 +103,7 @@ export const updateCategory = async (req, res) => {
 };
 
 /* ================= DELETE (DISABLE) CATEGORY ================= */
-export const deleteCategory = async (req, res) => {
+export const Categorystatus = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -114,7 +115,8 @@ export const deleteCategory = async (req, res) => {
       });
     }
 
-    category.isActive = false;
+    category.isActive = !category.isActive;
+
     await category.save();
 
     return res.status(200).json({
@@ -126,6 +128,52 @@ export const deleteCategory = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء حذف التصنيف'
+    });
+  }
+};
+
+/* ================= DELETE CATEGORY (PERMANENT) ================= */
+
+export const deleteCategoryPermanent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const category = await Category.findById(id);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'التصنيف غير موجود'
+      });
+    }
+
+    // ✅ Check لو في منتجات مرتبطة
+    const productsCount = await Product.countDocuments({
+      categoryId: id
+    });
+
+    if (productsCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'لا يمكن حذف التصنيف لوجود منتجات مرتبطة به'
+      });
+    }
+
+    // Delete image from Cloudinary
+    if (category.image?.public_id) {
+      await deleteImage(category.image.public_id);
+    }
+
+    await category.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: 'تم حذف التصنيف نهائيًا'
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ أثناء الحذف النهائي للتصنيف'
     });
   }
 };

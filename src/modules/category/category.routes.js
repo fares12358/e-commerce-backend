@@ -3,7 +3,8 @@ import {
     createCategory,
     getCategories,
     updateCategory,
-    deleteCategory
+    deleteCategoryPermanent,
+    Categorystatus
 } from './category.controller.js';
 
 import { protectAdmin } from '../admin/admin.auth.js';
@@ -16,6 +17,7 @@ router.use(protectAdmin);
 router.post('/', upload.single('image'), createCategory);
 router.get('/', getCategories);
 router.put('/:id', upload.single('image'), updateCategory);
-router.delete('/:id', deleteCategory);
+router.patch('/:id', Categorystatus);
+router.delete('/:id', deleteCategoryPermanent);
 
 export default router;
