@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: ["https://e-commerce-templete-mu.vercel.app", "http://localhost:3000"],
+  origin: true,
   credentials: true
 }));
 
