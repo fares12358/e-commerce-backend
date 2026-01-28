@@ -12,7 +12,7 @@ const sendAdminToken = (admin, res) => {
     { expiresIn: process.env.JWT_EXPIRES }
   );
 
-  res.cookie('admin_token', token, {
+  res.cookie(process.env.COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',

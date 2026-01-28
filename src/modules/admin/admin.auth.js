@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import Admin from './admin.model.js';
 
 export const protectAdmin = async (req, res, next) => {
-  const token = req.cookies?.admin_token;
+  const token = req.cookies?.[process.env.COOKIE_NAME];
 
   if (!token) {
     return res.status(401).json({ message: 'Admin not authenticated' });
