@@ -29,6 +29,7 @@ export const getMyProfile = async (req, res) => {
 };
 
 /* ================= UPDATE MY PROFILE ================= */
+
 export const updateMyProfile = async (req, res) => {
   try {
     const fields = ['name', 'phone', 'address'];

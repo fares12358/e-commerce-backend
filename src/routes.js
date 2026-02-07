@@ -11,6 +11,9 @@ import dashboardRoutes from './modules/admin/dashboard.routes.js';
 import publicCategoryRoutes from './modules/category/category.public.routes.js';
 import publicProductRoutes from './modules/product/product.public.routes.js';
 import cartRoutes from './modules/cart/cart.routes.js';
+import adsRoutes from './modules/ads/ads.routes.js';
+import dataRoutes from './modules/data/data.routes.js';
+import contactRoutes from './modules/contact/contact.routes.js';
 
 const router = express.Router();
 
@@ -22,11 +25,14 @@ router.use('/admin', adminRoutes);
 router.use('/admin/categories', categoryRoutes);
 router.use('/admin/products', productRoutes);
 router.use('/admin/dashboard', dashboardRoutes);
+router.use('/admin/ads', adsRoutes);
+router.use('/data', dataRoutes);
 router.use('/users', userRoutes);
 router.use('/users/location', userLocation);
 router.use('/orders', orderRoutes);
 router.use('/products', publicProductRoutes);
 router.use('/categories', publicCategoryRoutes);
 router.use('/cart', cartRoutes);
+router.use('/contact', contactRoutes);
 
 export default router;

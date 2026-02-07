@@ -6,95 +6,130 @@ export const getDashboardStats = async (req, res) => {
   try {
 
     const range = req.query.range || "week";
-    // week | month | lastMonth | threeMonths
 
-    const now = new Date();
+    const endDate = new Date();
     let startDate = new Date();
 
+    /* ===== DATE RANGE HANDLER ===== */
+
     if (range === "week") {
-      startDate.setDate(now.getDate() - 6);
+      startDate.setDate(endDate.getDate() - 6);
     }
 
     if (range === "month") {
-      startDate.setDate(1);
+      startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
     }
 
     if (range === "lastMonth") {
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      now.setDate(0); // end of last month
+      startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 1, 1);
+      endDate.setMonth(endDate.getMonth());
+      endDate.setDate(0); // last day of previous month
     }
 
     if (range === "threeMonths") {
-      startDate.setMonth(now.getMonth() - 2);
-      startDate.setDate(1);
+      startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 2, 1);
     }
 
-
-    /* ===== Users ===== */
+    /* ===== USERS ===== */
     const usersCount = await User.countDocuments();
 
-    /* ===== Orders ===== */
-    const totalOrders = await Order.countDocuments();
-    const pendingOrders = await Order.countDocuments({ status: 'pending' });
-    const confirmedOrders = await Order.countDocuments({ status: 'confirmed' });
-    const shippedOrders = await Order.countDocuments({ status: 'shipped' });
-    const deliveredOrders = await Order.countDocuments({ status: 'delivered' });
-    const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
+    /* ===== ORDER COUNTS ===== */
+    const [
+      totalOrders,
+      pendingOrders,
+      confirmedOrders,
+      shippedOrders,
+      deliveredOrders,
+      cancelledOrders
+    ] = await Promise.all([
+      Order.countDocuments(),
+      Order.countDocuments({ status: "pending" }),
+      Order.countDocuments({ status: "confirmed" }),
+      Order.countDocuments({ status: "shipped" }),
+      Order.countDocuments({ status: "delivered" }),
+      Order.countDocuments({ status: "cancelled" })
+    ]);
 
-    /* ===== Revenue (Delivered Only) ===== */
-    const revenueResult = await Order.aggregate([
-      { $match: { status: 'delivered' } },
+    /* ===== TOTAL REVENUE ===== */
+    const revenueAgg = await Order.aggregate([
+      { $match: { status: "delivered" } },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: '$totalPrice' }
+          total: { $sum: "$totalPrice" }
         }
       }
     ]);
 
-    const totalRevenue = revenueResult[0]?.totalRevenue || 0;
+    const totalRevenue = revenueAgg[0]?.total || 0;
 
-    /* ===== Line Chart Orders by Date ===== */
-    const chartData = await Order.aggregate([
+    /* ===== ORDERS BY DAY ===== */
+    const ordersAgg = await Order.aggregate([
       {
         $match: {
-          createdAt: { $gte: startDate }
+          createdAt: { $gte: startDate, $lte: endDate }
         }
       },
       {
         $group: {
           _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-            day: { $dayOfMonth: "$createdAt" }
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
           },
           count: { $sum: 1 }
         }
       },
-      {
-        $sort: {
-          "_id.year": 1,
-          "_id.month": 1,
-          "_id.day": 1
-        }
-      }
+      { $sort: { _id: 1 } }
     ]);
 
-    const labels = chartData.map(d =>
-      `${d._id.day}/${d._id.month}`
-    );
+    /* ===== INCOME BY DAY ===== */
+    const incomeAgg = await Order.aggregate([
+      {
+        $match: {
+          status: "delivered",
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+          },
+          total: { $sum: "$totalPrice" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
 
-    const orders = chartData.map(d => d.count);
+    /* ===== FILL EMPTY DAYS ===== */
+    const fillDays = (start, end, data, field) => {
+      const map = {};
+      data.forEach(d => map[d._id] = d[field]);
 
-    /* ===== Latest Orders ===== */
-    const latestOrders = await Order.find({ status: 'pending' })
-      .populate('userId', 'name email')
+      const labels = [];
+      const values = [];
+
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const key = d.toISOString().slice(0, 10);
+        labels.push(key);
+        values.push(map[key] || 0);
+      }
+
+      return { labels, values };
+    };
+
+    const ordersSeries = fillDays(startDate, endDate, ordersAgg, "count");
+    const incomeSeries = fillDays(startDate, endDate, incomeAgg, "total");
+
+    /* ===== LATEST ORDERS ===== */
+    const latestOrders = await Order.find({ status: "pending" })
+      .populate("userId", "name email")
       .sort({ createdAt: -1 })
       .limit(20);
 
+    /* ===== RESPONSE ===== */
     return res.status(200).json({
       success: true,
-      message: 'تم جلب إحصائيات لوحة التحكم بنجاح',
+      message: "تم جلب إحصائيات لوحة التحكم بنجاح",
       data: {
         users: usersCount,
         orders: {
@@ -107,18 +142,25 @@ export const getDashboardStats = async (req, res) => {
         },
         revenue: totalRevenue,
         latestOrders,
-
         chart: {
-          labels,
-          orders
+          orders: {
+            labels: ordersSeries.labels,
+            orders: ordersSeries.values
+          },
+          income: {
+            labels: incomeSeries.labels,
+            income: incomeSeries.values  
+          }
         }
       }
     });
 
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء جلب إحصائيات لوحة التحكم'
+      message: "حدث خطأ أثناء جلب إحصائيات لوحة التحكم"
     });
   }
 };
+

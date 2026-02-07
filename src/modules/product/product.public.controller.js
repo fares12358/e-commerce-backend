@@ -9,7 +9,7 @@ export const getPublicProducts = async (req, res) => {
       minPrice,
       maxPrice,
       page = 1,
-      limit = 12,
+      limit = 20,
       sortBy = 'createdAt',
       order = 'desc'
     } = req.query;

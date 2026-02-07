@@ -4,6 +4,27 @@ import {
   deleteImage
 } from '../../utils/cloudinary.js';
 
+const generateProductNumber = async () => {
+  const lastProduct = await Product.findOne({
+    productNumber: { $exists: true }
+  })
+  .sort({ createdAt: -1 })
+  .select('productNumber');
+
+  if (!lastProduct || !lastProduct.productNumber) {
+    return 'PRD-000001';
+  }
+
+  const lastNumber = Number(
+    lastProduct.productNumber.replace('PRD-', '')
+  );
+
+  const newNumber = String(lastNumber + 1).padStart(6, '0');
+
+  return `PRD-${newNumber}`;
+};
+
+
 /* ================= CREATE PRODUCT ================= */
 export const createProduct = async (req, res) => {
   try {
@@ -67,8 +88,10 @@ export const createProduct = async (req, res) => {
         images.push(await uploadImage(file, 'products'));
       }
     }
+    const productNumber = await generateProductNumber();
 
     const product = await Product.create({
+      productNumber,
       name,
       description,
       price,
@@ -90,6 +113,8 @@ export const createProduct = async (req, res) => {
     });
 
   } catch (error) {
+    console.log(error);
+    
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء إنشاء المنتج'

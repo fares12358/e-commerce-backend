@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import Admin from './admin.model.js';
 import sendEmail from '../../utils/sendEmail.js';
+import Config from './config.model.js';
+import Content from './content.modle.js';
 
 /* ================= UTIL: SEND ADMIN TOKEN ================= */
 const sendAdminToken = (admin, res) => {
@@ -229,6 +231,60 @@ export const updateAdminProfile = async (req, res) => {
   }
 };
 
+/* ================= ADMIN DASHBOARD SETTING ================= */
+
+export const updateConfig = async (req, res) => {
+  try {
+    const updatedConfig = await Config.findOneAndUpdate(
+      {},
+      { $set: req.body },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'تم تحديث الإعدادات بنجاح',
+      data: updatedConfig
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ في السيرفر أثناء التحديث'
+    });
+  }
+};
+
+export const getConfig = async (req, res) => {
+  try {
+    const config = await Config.findOne();
+
+    if (!config) {
+      return res.status(404).json({
+        success: false,
+        message: 'لم يتم العثور على الإعدادات'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: config
+    });
+
+  } catch (error) {
+
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ في السيرفر أثناء جلب البيانات'
+    });
+  }
+};
+
+
 /* ================= ADMIN DASHBOARD ================= */
 export const adminDashboard = async (req, res) => {
   try {
@@ -244,5 +300,196 @@ export const adminDashboard = async (req, res) => {
       success: false,
       message: 'حدث خطأ أثناء تحميل لوحة التحكم'
     });
+  }
+};
+
+
+/* ================= ADMIN content ================= */
+
+// Get Content (Public - for website)
+export const getContent = async (req, res) => {
+  try {
+    let content = await Content.findOne();
+
+    // If no content exists, create default one
+    if (!content) {
+      content = await Content.create({
+        aboutUs: {
+          title: 'من نحن',
+          description: '',
+          secondaryDescription: ''
+        },
+        vision: { title: 'رؤيتنا', description: '' },
+        mission: { title: 'مهمتنا', description: '' },
+        termsOfUse: [],
+        privacyPolicy: []
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: content
+    });
+  } catch (error) {
+    console.error('Error fetching content:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ في السيرفر أثناء جلب المحتوى'
+    });
+  }
+};
+
+// Update Main Content (Admin Only - About, Vision, Mission)
+export const updateMainContent = async (req, res) => {
+  try {
+    const { aboutUs, vision, mission } = req.body;
+
+    const updatedContent = await Content.findOneAndUpdate(
+      {},
+      {
+        $set: {
+          ...(aboutUs && { aboutUs }),
+          ...(vision && { vision }),
+          ...(mission && { mission })
+        }
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'تم تحديث المحتوى بنجاح',
+      data: updatedContent
+    });
+  } catch (error) {
+    console.error('Error updating main content:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ في السيرفر أثناء تحديث المحتوى'
+    });
+  }
+};
+
+// Add Section to Terms/Privacy (Admin Only)
+export const addSection = async (req, res) => {
+  try {
+    const { type, title, description } = req.body;
+
+    if (!type || !title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'جميع الحقول مطلوبة'
+      });
+    }
+
+    if (type !== 'termsOfUse' && type !== 'privacyPolicy') {
+      return res.status(400).json({
+        success: false,
+        message: 'نوع القسم غير صحيح'
+      });
+    }
+
+    let content = await Content.findOne();
+
+    if (!content) {
+      content = await Content.create({
+        aboutUs: { title: 'من نحن', description: '', secondaryDescription: '' },
+        vision: { title: 'رؤيتنا', description: '' },
+        mission: { title: 'مهمتنا', description: '' },
+        termsOfUse: [],
+        privacyPolicy: []
+      });
+    }
+
+    await Content.findOneAndUpdate(
+      {},
+      { $push: { [type]: { title, description } } },
+      { upsert: true, new: true }
+    );
+
+
+    return res.status(200).json({
+      success: true,
+      message: 'تم إضافة القسم بنجاح',
+      data: content
+    });
+  } catch (error) {
+    console.error('Error adding section:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ في السيرفر'
+    });
+  }
+};
+
+// Update Section (Admin Only)
+export const updateSection = async (req, res) => {
+  try {
+    const { type, sectionId, title, description } = req.body;
+
+    if (!['termsOfUse', 'privacyPolicy'].includes(type)) {
+      return res.status(400).json({ success: false, message: 'نوع غير صحيح' });
+    }
+
+    const updated = await Content.findOneAndUpdate(
+      { [`${type}._id`]: sectionId },
+      {
+        $set: {
+          [`${type}.$.title`]: title,
+          [`${type}.$.description`]: description
+        }
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'القسم غير موجود' });
+    }
+
+    res.json({
+      success: true,
+      message: 'تم التحديث بنجاح',
+      data: updated
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'خطأ سيرفر' });
+  }
+};
+
+
+// Delete Section (Admin Only)
+export const deleteSection = async (req, res) => {
+  try {
+    const { type, sectionId } = req.body;
+
+    if (!['termsOfUse', 'privacyPolicy'].includes(type)) {
+      return res.status(400).json({ success: false, message: 'نوع غير صحيح' });
+    }
+
+    const updated = await Content.findOneAndUpdate(
+      {},
+      {
+        $pull: {
+          [type]: { _id: sectionId }
+        }
+      },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'تم الحذف بنجاح',
+      data: updated
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'خطأ سيرفر' });
   }
 };

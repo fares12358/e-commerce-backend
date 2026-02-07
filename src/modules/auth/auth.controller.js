@@ -116,7 +116,10 @@ export const verifyRegisterOtp = async (req, res) => {
 
     await otpModel.deleteMany({ email });
 
-    return sendToken(user, res);
+    return res.status(200).json({
+      success: true,
+      message: 'تم انشاء الحساب بنجاح'
+    });
 
   } catch (error) {
     return res.status(500).json({
@@ -224,7 +227,7 @@ export const forgotPassword = async (req, res) => {
     const resetToken = user.getResetToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`;
 
     await sendEmail({
       to: user.email,
@@ -276,7 +279,67 @@ export const resetPassword = async (req, res) => {
 
     await user.save();
 
-    return sendToken(user, res);
+    return res.status(200).json({
+      success: true,
+      message: 'تم تحديث كلمة المرور بنجاح'
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ أثناء إعادة تعيين كلمة المرور'
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { current, password } = req.body;
+
+    if (!current || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'يرجى إدخال كلمة المرور الحالية والجديدة'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'المستخدم غير موجود'
+      });
+    }
+    
+
+    // تحقق من كلمة المرور الحالية
+    const isMatch = await bcrypt.compare(current, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'كلمة المرور الحالية غير صحيحة'
+      });
+    }
+
+    if (await bcrypt.compare(password, user.password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'لا يمكن استخدام نفس كلمة المرور القديمة'
+      });
+    }
+
+    // تشفير كلمة المرور الجديدة
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'تم تحديث كلمة المرور بنجاح'
+    });
 
   } catch (error) {
     return res.status(500).json({
