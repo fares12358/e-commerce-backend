@@ -27,10 +27,10 @@ const orderSchema = new mongoose.Schema(
         },
         name: String,
         price: Number,
-        attributes: Array, 
+        attributes: Array,
         selections: [
           { name: String, value: String }
-        ], 
+        ],
         quantity: Number
       }
     ],
@@ -53,9 +53,14 @@ const orderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'shipped', 'delivered','cancelled'],
+      enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
       default: 'pending'
+    },
+    cancelledAt: {
+      type: Date,
+      default: null
     }
+
   },
   { timestamps: true }
 );

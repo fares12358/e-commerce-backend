@@ -7,7 +7,8 @@ import {
   cancelOrder,
   getOrderStats,
   cancelOrderAdmin,
-  getOrderById
+  getOrderById,
+  getOrdersById
 } from './order.controller.js';
 
 import { protect } from '../../middlewares/auth.middleware.js';
@@ -16,10 +17,11 @@ import { protectAdmin } from '../admin/admin.auth.js';
 const router = express.Router();
 
 /* ===== User ===== */
+
 router.post('/', protect, createOrder);
 router.get('/my', protect, getMyOrders);
-router.delete('/:id', protect, cancelOrder);
-
+router.get('/my/:id', protect, getOrdersById);
+router.patch('/:id', protect, cancelOrder);
 
 /* ===== Admin ===== */
 

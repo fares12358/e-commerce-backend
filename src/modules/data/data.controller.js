@@ -28,7 +28,6 @@ export const getWebsiteInitData = async (req, res) => {
             // ✅ New products (last 20)
             Product.find(
                 { isActive: true },
-              
             )
                 .populate("categoryId", "name")
                 .sort({ createdAt: -1 })

@@ -55,12 +55,16 @@ const userSchema = new mongoose.Schema(
         locationLink: {
           type: String
         },
-        floorNumber: {
+        strName: {
           type: String
         },
         phone: {
           type: String,
           required: true
+        },
+        default: {
+          type: Boolean,
+          default: false
         }
       }
     ],

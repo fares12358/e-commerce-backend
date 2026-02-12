@@ -3,6 +3,7 @@ import User from '../users/user.model.js';
 import Cart from '../cart/cart.model.js';
 import Product from '../product/product.model.js';
 import mongoose from 'mongoose';
+import config from '../admin/config.model.js';
 
 /* ================= CREATE ORDER (USER) ================= */
 export const createOrder = async (req, res) => {
@@ -18,6 +19,7 @@ export const createOrder = async (req, res) => {
 
     const user = await User.findById(req.user._id);
     const locationExists = user.locations.id(locationId);
+    const config = config.findOne();
 
     if (!locationExists) {
       return res.status(400).json({
@@ -74,6 +76,7 @@ export const createOrder = async (req, res) => {
       userId: req.user._id,
       locationId,
       items: orderItems,
+      shippingFee: config.shipment,
       totalPrice
     });
 
@@ -86,6 +89,8 @@ export const createOrder = async (req, res) => {
     });
 
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء إنشاء الطلب'
@@ -94,24 +99,132 @@ export const createOrder = async (req, res) => {
 };
 
 /* ================= GET MY ORDERS (USER) ================= */
+
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.user._id })
-      .sort({ createdAt: -1 });
+    const {
+      page = 1,
+      limit = 20,
+      status,
+      sort = "new"
+    } = req.query;
+
+    const currentPage = parseInt(page);
+    const pageLimit = parseInt(limit);
+
+    // 🔹 Filter
+    const filter = { userId: req.user._id };
+    if (status) filter.status = status;
+
+    // 🔹 Sort
+    const sortOption =
+      sort === "old"
+        ? { createdAt: 1 }
+        : { createdAt: -1 };
+
+    // 🔹 Count
+    const totalOrders = await Order.countDocuments(filter);
+    const totalPages = Math.ceil(totalOrders / pageLimit);
+
+    // 🔹 Get Orders
+    const orders = await Order.find(filter)
+      .sort(sortOption)
+      .skip((currentPage - 1) * pageLimit)
+      .limit(pageLimit)
+      .lean();
+
+    // 🟢 جلب عناوين المستخدم مرة واحدة فقط
+    const user = await User.findById(req.user._id)
+      .select("locations")
+      .lean();
+
+    const locationsMap = {};
+    user?.locations?.forEach(loc => {
+      locationsMap[loc._id.toString()] = loc;
+    });
+
+    // 🟢 تركيب العنوان داخل كل طلب
+    const ordersWithLocation = orders.map(order => ({
+      ...order,
+      location: locationsMap[order.locationId?.toString()] || null
+    }));
 
     return res.status(200).json({
       success: true,
-      message: 'تم جلب الطلبات بنجاح',
-      data: orders
+      message: "تم جلب الطلبات بنجاح",
+      data: ordersWithLocation,
+      pagination: {
+        totalOrders,
+        totalPages,
+        currentPage,
+        limit: pageLimit
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "حدث خطأ أثناء جلب الطلبات"
+    });
+  }
+};
+
+/* ================= GET ORDERS by id (USER) ================= */
+
+export const getOrdersById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 🛑 تحقق من صحة الـ id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "معرف الطلب غير صالح"
+      });
+    }
+
+    // 🟢 ابحث عن الطلب للمستخدم الحالي فقط
+    const order = await Order.findOne({
+      _id: id,
+      userId: req.user._id
+    })
+      .lean();
+
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "الطلب غير موجود"
+      });
+    }
+
+    // 🟢 جلب المستخدم
+    const user = await User.findById(req.user._id)
+      .select("locations")
+      .lean();
+
+    // 🟢 استخراج العنوان من داخل locations
+    const location = user?.locations?.find(
+      loc => loc._id.toString() === order.locationId.toString()
+    );
+
+    // 🟢 إضافة العنوان داخل الطلب
+    order.location = location || null;
+
+    return res.status(200).json({
+      success: true,
+      data: order
     });
 
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء جلب الطلبات'
+      message: "حدث خطأ أثناء جلب الطلب"
     });
   }
 };
+
 /* ================= CANCEL ORDERS (USER) ================= */
 export const cancelOrder = async (req, res) => {
   try {
@@ -136,15 +249,18 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
+    // 🟢 إعادة المخزون
     for (const item of order.items) {
-      const product = await Product.findById(item.productId);
-      if (product) {
-        product.stock += item.quantity;
-        await product.save();
-      }
+      await Product.updateOne(
+        { _id: item.productId },
+        { $inc: { stock: item.quantity } }
+      );
     }
+    // 🟢 تحديث الحالة بدل الحذف
+    order.status = 'cancelled';
+    order.cancelledAt = new Date();
 
-    await order.deleteOne();
+    await order.save();
 
     return res.status(200).json({
       success: true,

@@ -10,6 +10,7 @@ const configSchema = new mongoose.Schema(
             whatsappLink: { type: String, default: '' },
         },
         address: { type: String, default: '' }, // Added address
+        shipment: { type: String, default: '' },
         socialMedia: {
             facebook: { type: String, default: '' },
             twitter: { type: String, default: '' },

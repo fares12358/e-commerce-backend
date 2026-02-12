@@ -187,8 +187,6 @@ export const updateCartItem = async (req, res) => {
   }
 };
 
-
-
 /* ================= REMOVE FROM CART ================= */
 export const removeFromCart = async (req, res) => {
   try {
@@ -202,7 +200,6 @@ export const removeFromCart = async (req, res) => {
         message: 'السلة فارغة'
       });
     }
-
 
     const exists = cart.items.id(itemId);
 
