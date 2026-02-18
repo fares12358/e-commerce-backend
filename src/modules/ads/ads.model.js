@@ -7,7 +7,6 @@ const adSchema = new mongoose.Schema(
             required: true,
             trim: true
         },
-
         description: {
             type: String,
             required: true
@@ -18,11 +17,11 @@ const adSchema = new mongoose.Schema(
             maxlength: 30,
             default: ""
         },
+        link: { type: String },
         image: {
             url: { type: String, required: true },
             public_id: { type: String, required: true }
         },
-
         isActive: {
             type: Boolean,
             default: true

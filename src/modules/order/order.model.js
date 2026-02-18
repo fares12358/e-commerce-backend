@@ -41,8 +41,8 @@ const orderSchema = new mongoose.Schema(
     },
 
     shippingFee: {
-      type: Number,
-      default: 0
+      type: String,
+      default: ''
     },
 
     paymentMethod: {

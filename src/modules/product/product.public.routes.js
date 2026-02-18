@@ -1,12 +1,16 @@
 import express from 'express';
 import {
   getPublicProducts,
-  getProductDetails
+  getProductDetails,
+  suggestProducts,
+  searchProducts
 } from './product.public.controller.js';
 
 const router = express.Router();
 
 router.get('/', getPublicProducts);
-router.get('/:id', getProductDetails);
+router.get('/details/:id', getProductDetails);
+router.get('/suggest', suggestProducts);
+router.get("/search", searchProducts);
 
 export default router;

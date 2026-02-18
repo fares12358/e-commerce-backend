@@ -8,7 +8,8 @@ import {
   getOrderStats,
   cancelOrderAdmin,
   getOrderById,
-  getOrdersById
+  getOrdersById,
+  getInvoice
 } from './order.controller.js';
 
 import { protect } from '../../middlewares/auth.middleware.js';
@@ -22,6 +23,7 @@ router.post('/', protect, createOrder);
 router.get('/my', protect, getMyOrders);
 router.get('/my/:id', protect, getOrdersById);
 router.patch('/:id', protect, cancelOrder);
+router.get('/invoice/:id', protect, getInvoice);
 
 /* ===== Admin ===== */
 

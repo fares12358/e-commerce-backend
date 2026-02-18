@@ -19,6 +19,7 @@ const configSchema = new mongoose.Schema(
             telegram: { type: String, default: '' },
             tiktok: { type: String, default: '' },
         },
+        simple: { type: String, default: '' },
         term: { type: String, default: '' }
     },
     { timestamps: true }

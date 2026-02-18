@@ -3,23 +3,22 @@ import User from '../users/user.model.js';
 import Cart from '../cart/cart.model.js';
 import Product from '../product/product.model.js';
 import mongoose from 'mongoose';
-import config from '../admin/config.model.js';
+import Config from '../admin/config.model.js';
+import sendEmail from '../../utils/sendEmail.js';
 
 /* ================= CREATE ORDER (USER) ================= */
 export const createOrder = async (req, res) => {
   try {
     const { locationId } = req.body;
-
     if (!locationId) {
       return res.status(400).json({
         success: false,
         message: 'العنوان مطلوب'
       });
     }
-
+    const config = await Config.findOne();
     const user = await User.findById(req.user._id);
     const locationExists = user.locations.id(locationId);
-    const config = config.findOne();
 
     if (!locationExists) {
       return res.status(400).json({
@@ -104,9 +103,10 @@ export const getMyOrders = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 20,
+      limit = 5,
       status,
-      sort = "new"
+      sort = "new",
+      orderNumber
     } = req.query;
 
     const currentPage = parseInt(page);
@@ -115,6 +115,24 @@ export const getMyOrders = async (req, res) => {
     // 🔹 Filter
     const filter = { userId: req.user._id };
     if (status) filter.status = status;
+
+    if (orderNumber) {
+
+      // 🧹 تنظيف الإدخال
+      let clean = orderNumber.trim();
+
+      // إزالة #
+      clean = clean.replace(/^#/, "");
+
+      // إزالة ORD- أو ord-
+      clean = clean.replace(/^ord-/i, "");
+
+      // الآن نبحث بأي رقم يحتويه الطلب
+      filter.orderNumber = {
+        $regex: clean,
+        $options: "i"
+      };
+    }
 
     // 🔹 Sort
     const sortOption =
@@ -271,6 +289,106 @@ export const cancelOrder = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء إلغاء الطلب'
+    });
+  }
+};
+
+/* ================= invoice ORDERS (USER) ================= */
+export const getInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "معرف الطلب غير صالح",
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: id,
+      userId: req.user._id,
+    }).lean();
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "الطلب غير موجود",
+      });
+    }
+
+    const user = await User.findById(req.user._id)
+      .select("email name locations")
+      .lean();
+
+    const location = user?.locations?.find(
+      (loc) => loc._id.toString() === order.locationId.toString()
+    );
+
+    /* ================= ITEMS ================= */
+
+    const itemsRows = order.items
+      .map(
+        (item) => `
+        <tr>
+          <td>${item.name}</td>
+          <td>${item.quantity}</td>
+          <td>${Number(item.price).toFixed(2)} </td>
+          <td>${(item.price * item.quantity).toFixed(2)} </td>
+        </tr>
+      `
+      )
+      .join("");
+
+    /* ================= INVOICE HTML ================= */
+
+    const html = `
+    <div style="font-family:Arial;padding:20px" dir='rtl'>
+      <h2>فاتورة الطلب #${order.orderNumber}</h2>
+
+      <p><strong>العميل:</strong> ${user.name || ""}</p>
+      <p><strong>العنوان:</strong> ${location?.country || ""} ${location?.city || ""} ${location?.government || ""} ${location?.strName || ""}</p>
+      <p><strong>التاريخ:</strong> ${new Date(order.createdAt).toLocaleDateString("ar-EG")}</p>
+
+      <table border="1" cellspacing="0" cellpadding="8" width="100%" style="border-collapse:collapse;margin-top:20px">
+        <thead>
+          <tr style="background:#f3f3f3">
+            <th>المنتج</th>
+            <th>الكمية</th>
+            <th>السعر</th>
+            <th>الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+
+      <div style="margin-top:20px">
+        <p>رسوم الشحن: <strong>${order.shippingFee || "—"} </strong></p>
+        <h3>الإجمالي النهائي: ${Number(order.totalPrice).toFixed(2)} </h3>
+      </div>
+
+      <p style="margin-top:30px">شكراً لطلبك </p>
+    </div>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: `فاتورة طلب رقم ${order.orderNumber}`,
+      html,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "تم ارسال الفاتورة الى بريدك الالكتروني",
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: "حدث خطأ أثناء ارسال الفاتورة",
     });
   }
 };

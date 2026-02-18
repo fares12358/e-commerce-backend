@@ -110,3 +110,90 @@ export const getProductDetails = async (req, res) => {
     });
   }
 };
+
+export const suggestProducts = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    // حماية السيرفر
+    if (!q || q.trim().length < 2) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+
+    const products = await Product.find(
+      {
+        isActive: true,
+        $text: { $search: q }
+      },
+      {
+        name: 1,
+        price: 1,
+        images: { $slice: 1 }
+      }
+    )
+      .limit(5)
+      .lean();
+
+    return res.json({
+      success: true,
+      data: products
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "search error"
+    });
+  }
+};
+
+export const searchProducts = async (req, res) => {
+  try {
+    const { q = "", page = 1, limit = 20 } = req.query;
+
+    const currentPage = parseInt(page);
+    const perPage = parseInt(limit);
+
+    if (!q.trim()) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: { totalPages: 0 }
+      });
+    }
+
+    const filter = {
+      isActive: true,
+      $text: { $search: q }
+    };
+
+    const total = await Product.countDocuments(filter);
+
+    const products = await Product.find(
+      filter,
+      { score: { $meta: "textScore" } } // ترتيب حسب الصلة
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage)
+      .lean();
+    
+    res.json({
+      success: true,
+      data: products,
+      pagination: {
+        totalPages: Math.ceil(total / perPage),
+        currentPage
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "search error"
+    });
+  }
+};

@@ -15,7 +15,8 @@ export const createAd = async (req, res) => {
             image: {
                 url: uploaded.url,
                 public_id: uploaded.public_id
-            }
+            },
+            link: req.body.link
         });
 
         res.status(201).json({ success: true, data: ad });
@@ -86,6 +87,7 @@ export const updateAd = async (req, res) => {
         ad.title = req.body.title || ad.title;
         ad.description = req.body.description || ad.description;
         ad.tag = req.body.tag || ad.tag;
+        ad.link = req.body.link || ad.link;
 
 
         await ad.save();

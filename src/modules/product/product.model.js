@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema(
       unique: true,
       trim: true
     },
-    
+
 
     description: {
       type: String
@@ -101,5 +101,9 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+// 🔍 search index (name only)
+productSchema.index({
+  name: "text"
+});
 
 export default mongoose.model('Product', productSchema);
