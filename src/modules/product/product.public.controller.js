@@ -134,7 +134,7 @@ export const suggestProducts = async (req, res) => {
         images: { $slice: 1 }
       }
     )
-      .limit(5)
+      .limit(10)
       .lean();
 
     return res.json({
