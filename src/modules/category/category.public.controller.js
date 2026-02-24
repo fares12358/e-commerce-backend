@@ -21,35 +21,48 @@ export const getPublicCategories = async (req, res) => {
     });
   }
 };
-
 export const getProductsByCat = async (req, res) => {
   try {
-    const { catId } = req.params
-    const { page = 1, limit = 20, sort = "newest" } = req.query
+    const { catId } = req.params;
+    const { page = 1, limit = 20, sort = "newest" } = req.query;
 
-    const category = await Category.findById(catId).lean()
-    if (!category) {
+    const category = await Category.findById(catId).lean();
+    if (!category || !category.isActive) {
       return res.status(404).json({
         success: false,
         message: "التصنيف غير موجود"
-      })
+      });
     }
 
-    const skip = (page - 1) * limit
+    const skip = (Number(page) - 1) * Number(limit);
 
-    let sortOption = { createdAt: -1 }
-    if (sort === "priceAsc") sortOption = { price: 1 }
-    if (sort === "priceDesc") sortOption = { price: -1 }
+    let sortOption = { createdAt: -1 };
+
+    switch (sort) {
+      case "oldest":
+        sortOption = { createdAt: 1 };
+        break;
+      case "priceAsc":
+        sortOption = { price: 1 };
+        break;
+      case "priceDesc":
+        sortOption = { price: -1 };
+        break;
+      default:
+        sortOption = { createdAt: -1 };
+    }
+
+    const filter = { categoryId: catId, isActive: true };
 
     const [products, total] = await Promise.all([
-      Product.find({ categoryId: catId, isActive: true })
+      Product.find(filter)
         .sort(sortOption)
         .skip(skip)
         .limit(Number(limit))
         .lean(),
 
-      Product.countDocuments({ categoryId: catId, isActive: true })
-    ])
+      Product.countDocuments(filter)
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -67,12 +80,12 @@ export const getProductsByCat = async (req, res) => {
           totalPages: Math.ceil(total / limit)
         }
       }
-    })
+    });
 
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء جلب المنتجات"
-    })
+    });
   }
-}
+};

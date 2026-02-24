@@ -1,10 +1,10 @@
-import Order from './order.model.js';
-import User from '../users/user.model.js';
-import Cart from '../cart/cart.model.js';
-import Product from '../product/product.model.js';
-import mongoose from 'mongoose';
-import Config from '../admin/config.model.js';
-import sendEmail from '../../utils/sendEmail.js';
+import Order from "./order.model.js";
+import User from "../users/user.model.js";
+import Cart from "../cart/cart.model.js";
+import Product from "../product/product.model.js";
+import mongoose from "mongoose";
+import Config from "../admin/config.model.js";
+import sendEmail from "../../utils/sendEmail.js";
 
 /* ================= CREATE ORDER (USER) ================= */
 export const createOrder = async (req, res) => {
@@ -13,7 +13,7 @@ export const createOrder = async (req, res) => {
     if (!locationId) {
       return res.status(400).json({
         success: false,
-        message: 'العنوان مطلوب'
+        message: "العنوان مطلوب",
       });
     }
     const config = await Config.findOne();
@@ -23,7 +23,7 @@ export const createOrder = async (req, res) => {
     if (!locationExists) {
       return res.status(400).json({
         success: false,
-        message: 'العنوان غير صالح'
+        message: "العنوان غير صالح",
       });
     }
 
@@ -31,7 +31,7 @@ export const createOrder = async (req, res) => {
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'السلة فارغة'
+        message: "السلة فارغة",
       });
     }
 
@@ -44,14 +44,14 @@ export const createOrder = async (req, res) => {
       if (!product || !product.isActive) {
         return res.status(400).json({
           success: false,
-          message: 'أحد المنتجات غير متوفر'
+          message: "أحد المنتجات غير متوفر",
         });
       }
 
       if (item.quantity > product.stock) {
         return res.status(400).json({
           success: false,
-          message: 'الكمية المطلوبة غير متاحة'
+          message: "الكمية المطلوبة غير متاحة",
         });
       }
 
@@ -64,7 +64,7 @@ export const createOrder = async (req, res) => {
         price: product.price,
         attributes: product.attributes,
         selections: item.selections,
-        quantity: item.quantity
+        quantity: item.quantity,
       });
 
       totalPrice += product.price * item.quantity;
@@ -76,23 +76,22 @@ export const createOrder = async (req, res) => {
       locationId,
       items: orderItems,
       shippingFee: config.shipment,
-      totalPrice
+      totalPrice,
     });
 
     await Cart.findByIdAndDelete(cart._id);
 
     return res.status(201).json({
       success: true,
-      message: 'تم إنشاء الطلب بنجاح',
-      data: order
+      message: "تم إنشاء الطلب بنجاح",
+      data: order,
     });
-
   } catch (error) {
     console.log(error);
 
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء إنشاء الطلب'
+      message: "حدث خطأ أثناء إنشاء الطلب",
     });
   }
 };
@@ -106,7 +105,7 @@ export const getMyOrders = async (req, res) => {
       limit = 5,
       status,
       sort = "new",
-      orderNumber
+      orderNumber,
     } = req.query;
 
     const currentPage = parseInt(page);
@@ -117,7 +116,6 @@ export const getMyOrders = async (req, res) => {
     if (status) filter.status = status;
 
     if (orderNumber) {
-
       // 🧹 تنظيف الإدخال
       let clean = orderNumber.trim();
 
@@ -130,15 +128,12 @@ export const getMyOrders = async (req, res) => {
       // الآن نبحث بأي رقم يحتويه الطلب
       filter.orderNumber = {
         $regex: clean,
-        $options: "i"
+        $options: "i",
       };
     }
 
     // 🔹 Sort
-    const sortOption =
-      sort === "old"
-        ? { createdAt: 1 }
-        : { createdAt: -1 };
+    const sortOption = sort === "old" ? { createdAt: 1 } : { createdAt: -1 };
 
     // 🔹 Count
     const totalOrders = await Order.countDocuments(filter);
@@ -152,19 +147,17 @@ export const getMyOrders = async (req, res) => {
       .lean();
 
     // 🟢 جلب عناوين المستخدم مرة واحدة فقط
-    const user = await User.findById(req.user._id)
-      .select("locations")
-      .lean();
+    const user = await User.findById(req.user._id).select("locations").lean();
 
     const locationsMap = {};
-    user?.locations?.forEach(loc => {
+    user?.locations?.forEach((loc) => {
       locationsMap[loc._id.toString()] = loc;
     });
 
     // 🟢 تركيب العنوان داخل كل طلب
-    const ordersWithLocation = orders.map(order => ({
+    const ordersWithLocation = orders.map((order) => ({
       ...order,
-      location: locationsMap[order.locationId?.toString()] || null
+      location: locationsMap[order.locationId?.toString()] || null,
     }));
 
     return res.status(200).json({
@@ -175,15 +168,14 @@ export const getMyOrders = async (req, res) => {
         totalOrders,
         totalPages,
         currentPage,
-        limit: pageLimit
-      }
+        limit: pageLimit,
+      },
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: "حدث خطأ أثناء جلب الطلبات"
+      message: "حدث خطأ أثناء جلب الطلبات",
     });
   }
 };
@@ -198,33 +190,29 @@ export const getOrdersById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "معرف الطلب غير صالح"
+        message: "معرف الطلب غير صالح",
       });
     }
 
     // 🟢 ابحث عن الطلب للمستخدم الحالي فقط
     const order = await Order.findOne({
       _id: id,
-      userId: req.user._id
-    })
-      .lean();
-
+      userId: req.user._id,
+    }).lean();
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: "الطلب غير موجود"
+        message: "الطلب غير موجود",
       });
     }
 
     // 🟢 جلب المستخدم
-    const user = await User.findById(req.user._id)
-      .select("locations")
-      .lean();
+    const user = await User.findById(req.user._id).select("locations").lean();
 
     // 🟢 استخراج العنوان من داخل locations
     const location = user?.locations?.find(
-      loc => loc._id.toString() === order.locationId.toString()
+      (loc) => loc._id.toString() === order.locationId.toString()
     );
 
     // 🟢 إضافة العنوان داخل الطلب
@@ -232,13 +220,12 @@ export const getOrdersById = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: order
+      data: order,
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "حدث خطأ أثناء جلب الطلب"
+      message: "حدث خطأ أثناء جلب الطلب",
     });
   }
 };
@@ -250,20 +237,20 @@ export const cancelOrder = async (req, res) => {
 
     const order = await Order.findOne({
       _id: id,
-      userId: req.user._id
+      userId: req.user._id,
     });
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'الطلب غير موجود'
+        message: "الطلب غير موجود",
       });
     }
 
-    if (order.status !== 'pending') {
+    if (order.status !== "pending") {
       return res.status(400).json({
         success: false,
-        message: 'لا يمكن إلغاء الطلب بعد تأكيده'
+        message: "لا يمكن إلغاء الطلب بعد تأكيده",
       });
     }
 
@@ -275,20 +262,19 @@ export const cancelOrder = async (req, res) => {
       );
     }
     // 🟢 تحديث الحالة بدل الحذف
-    order.status = 'cancelled';
+    order.status = "cancelled";
     order.cancelledAt = new Date();
 
     await order.save();
 
     return res.status(200).json({
       success: true,
-      message: 'تم إلغاء الطلب بنجاح'
+      message: "تم إلغاء الطلب بنجاح",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء إلغاء الطلب'
+      message: "حدث خطأ أثناء إلغاء الطلب",
     });
   }
 };
@@ -330,47 +316,125 @@ export const getInvoice = async (req, res) => {
     const itemsRows = order.items
       .map(
         (item) => `
-        <tr>
-          <td>${item.name}</td>
-          <td>${item.quantity}</td>
-          <td>${Number(item.price).toFixed(2)} </td>
-          <td>${(item.price * item.quantity).toFixed(2)} </td>
-        </tr>
-      `
+      <div style="
+        border:1px solid #e5e5e5;
+        border-radius:6px;
+        padding:12px;
+        margin-bottom:10px;
+        background:#fafafa;
+        word-break:break-word;
+        overflow-wrap:break-word;
+      ">
+        
+        <p style="margin:0 0 6px 0;font-weight:bold;">
+          ${item.name?.trim()?.split(/\s+/).slice(0, 3).join(" ") || ""}
+        </p>
+
+        <p style="margin:2px 0;font-size:13px;">
+          الكمية: ${item.quantity}
+        </p>
+
+        <p style="margin:2px 0;font-size:13px;">
+          السعر: ${Number(item.price).toFixed(2)}
+        </p>
+
+        <p style="margin:4px 0 0 0;font-weight:bold;">
+          الإجمالي: ${(item.price * item.quantity).toFixed(2)}
+        </p>
+
+      </div>
+    `
       )
       .join("");
 
     /* ================= INVOICE HTML ================= */
-
     const html = `
-    <div style="font-family:Arial;padding:20px" dir='rtl'>
-      <h2>فاتورة الطلب #${order.orderNumber}</h2>
+    <!DOCTYPE html>
+    <html lang="ar">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاتورة الطلب</title>
+    </head>
+    
+    <body style="margin:0;padding:0;background-color:#f5f5f5;font-family:Arial,sans-serif;" dir="rtl">
+    
+      <table width="100%" cellpadding="8" cellspacing="0" border="0" style="border-collapse:collapse;font-size:13px;table-layout:fixed;">
+        <tr>
+          <td align="center">
+    
+            <!-- Container -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" 
+              style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;">
+    
+              <!-- Header -->
+              <tr>
+                <td style="background:#000;color:#fff;padding:20px;text-align:center;">
+                  <h2 style="margin:0;font-size:20px;">فاتورة الطلب #${order.orderNumber
+      }</h2>
+                </td>
+              </tr>
+    
+              <!-- Customer Info -->
+              <tr>
+                <td style="padding:20px;font-size:14px;color:#333;line-height:1.8;">
+                  <p style="margin:0;"><strong>العميل:</strong> ${user.name || ""
+      }</p>
+                  <p style="margin:0;"><strong>العنوان:</strong> 
+                    ${location?.country || ""} 
+                    ${location?.city || ""} 
+                    ${location?.government || ""} 
+                    ${location?.strName || ""}
+                  </p>
+                  <p style="margin:0;"><strong>التاريخ:</strong> 
+                    ${new Date(order.createdAt).toLocaleDateString("ar-EG")}
+                  </p>
+                </td>
+              </tr>
+    
+              <!-- Products Section -->
+<tr>
+  <td style="padding:0 20px 20px 20px;">
 
-      <p><strong>العميل:</strong> ${user.name || ""}</p>
-      <p><strong>العنوان:</strong> ${location?.country || ""} ${location?.city || ""} ${location?.government || ""} ${location?.strName || ""}</p>
-      <p><strong>التاريخ:</strong> ${new Date(order.createdAt).toLocaleDateString("ar-EG")}</p>
+    <h3 style="margin-bottom:10px;font-size:15px;">
+      تفاصيل الطلب
+    </h3>
 
-      <table border="1" cellspacing="0" cellpadding="8" width="100%" style="border-collapse:collapse;margin-top:20px">
-        <thead>
-          <tr style="background:#f3f3f3">
-            <th>المنتج</th>
-            <th>الكمية</th>
-            <th>السعر</th>
-            <th>الإجمالي</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${itemsRows}
-        </tbody>
+    ${itemsRows}
+
+  </td>
+</tr>
+    
+              <!-- Totals -->
+              <tr>
+                <td style="padding:0 20px 20px 20px;font-size:14px;color:#333;">
+                  <p style="margin:5px 0;">رسوم الشحن: 
+                    <strong>${order.shippingFee || "—"}</strong>
+                  </p>
+    
+                  <p style="margin:5px 0;font-size:16px;font-weight:bold;">
+                    الإجمالي النهائي: 
+                    ${Number(order.totalPrice).toFixed(2)}
+                  </p>
+                </td>
+              </tr>
+    
+              <!-- Footer -->
+              <tr>
+                <td style="background:#fafafa;padding:20px;text-align:center;font-size:13px;color:#777;">
+                  شكراً لطلبك ❤️
+                </td>
+              </tr>
+    
+            </table>
+            <!-- End Container -->
+    
+          </td>
+        </tr>
       </table>
-
-      <div style="margin-top:20px">
-        <p>رسوم الشحن: <strong>${order.shippingFee || "—"} </strong></p>
-        <h3>الإجمالي النهائي: ${Number(order.totalPrice).toFixed(2)} </h3>
-      </div>
-
-      <p style="margin-top:30px">شكراً لطلبك </p>
-    </div>
+    
+    </body>
+    </html>
     `;
 
     await sendEmail({
@@ -383,7 +447,6 @@ export const getInvoice = async (req, res) => {
       success: true,
       message: "تم ارسال الفاتورة الى بريدك الالكتروني",
     });
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({
@@ -393,20 +456,19 @@ export const getInvoice = async (req, res) => {
   }
 };
 
-
 /* ================= GET ALL ORDERS (ADMIN) ================= */
 
 export const getAllOrders = async (req, res) => {
   try {
     const {
       status,
-      sort = 'desc',
+      sort = "desc",
       email,
       orderId,
       searchBy,
       page = 1,
       limit = 20,
-      date
+      date,
     } = req.query;
 
     const query = {};
@@ -419,36 +481,37 @@ export const getAllOrders = async (req, res) => {
       const now = new Date();
       let fromDate;
 
-      if (date === 'today') fromDate = new Date(now.setHours(0, 0, 0, 0));
-      if (date === 'week') fromDate = new Date(Date.now() - 7 * 86400000);
-      if (date === 'month') fromDate = new Date(Date.now() - 30 * 86400000);
-      if (date === 'threeMonths') fromDate = new Date(Date.now() - 90 * 86400000);
+      if (date === "today") fromDate = new Date(now.setHours(0, 0, 0, 0));
+      if (date === "week") fromDate = new Date(Date.now() - 7 * 86400000);
+      if (date === "month") fromDate = new Date(Date.now() - 30 * 86400000);
+      if (date === "threeMonths")
+        fromDate = new Date(Date.now() - 90 * 86400000);
 
       if (fromDate) query.createdAt = { $gte: fromDate };
     }
 
     // 📧 Search by email
-    if (searchBy === 'email' && email) {
+    if (searchBy === "email" && email) {
       const users = await User.find({
-        email: { $regex: email, $options: 'i' }
-      }).select('_id');
+        email: { $regex: email, $options: "i" },
+      }).select("_id");
 
-      query.userId = { $in: users.map(u => u._id) };
+      query.userId = { $in: users.map((u) => u._id) };
     }
 
     // 🔍 Search by order ID / order number
-    if (searchBy === 'orderId' && orderId) {
+    if (searchBy === "orderId" && orderId) {
       query.$or = [
-        { orderNumber: { $regex: orderId, $options: 'i' } },
-        { orderNumber: orderId }
+        { orderNumber: { $regex: orderId, $options: "i" } },
+        { orderNumber: orderId },
       ];
     }
 
     const skip = (page - 1) * limit;
-    const sortOrder = sort === 'asc' ? 1 : -1;
+    const sortOrder = sort === "asc" ? 1 : -1;
 
     const orders = await Order.find(query)
-      .populate('userId', 'name email')
+      .populate("userId", "name email")
       .sort({ createdAt: sortOrder })
       .skip(skip)
       .limit(Number(limit));
@@ -463,85 +526,80 @@ export const getAllOrders = async (req, res) => {
           total,
           page: Number(page),
           limit: Number(limit),
-          totalPages: Math.ceil(total / limit)
-        }
-      }
+          totalPages: Math.ceil(total / limit),
+        },
+      },
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء جلب الطلبات'
+      message: "حدث خطأ أثناء جلب الطلبات",
     });
   }
 };
-
 
 export const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
 
     const order = await Order.findById(id)
-      .populate('userId', 'name email locations')
-      .populate('items.productId', 'name images price stock sku')
+      .populate("userId", "name email locations")
+      .populate("items.productId", "name images price stock sku");
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'الطلب غير موجود'
+        message: "الطلب غير موجود",
       });
     }
 
     // 🎯 Extract selected location
     const selectedLocation = order.userId.locations.find(
-      loc => loc._id.toString() === order.locationId.toString()
+      (loc) => loc._id.toString() === order.locationId.toString()
     );
 
     return res.status(200).json({
       success: true,
-      message: 'تم جلب تفاصيل الطلب',
+      message: "تم جلب تفاصيل الطلب",
       data: {
         ...order.toObject(),
-        location: selectedLocation || null
-      }
+        location: selectedLocation || null,
+      },
     });
-
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء جلب الطلب'
+      message: "حدث خطأ أثناء جلب الطلب",
     });
   }
 };
 
-
 /* ================= ORDER STATS (ADMIN) ================= */
 export const getOrderStats = async (req, res) => {
   try {
-    const pending = await Order.countDocuments({ status: 'pending' });
-    const confirmed = await Order.countDocuments({ status: 'confirmed' });
-    const shipped = await Order.countDocuments({ status: 'shipped' });
-    const delivered = await Order.countDocuments({ status: 'delivered' });
-    const cancelled = await Order.countDocuments({ status: 'cancelled' });
+    const pending = await Order.countDocuments({ status: "pending" });
+    const confirmed = await Order.countDocuments({ status: "confirmed" });
+    const shipped = await Order.countDocuments({ status: "shipped" });
+    const delivered = await Order.countDocuments({ status: "delivered" });
+    const cancelled = await Order.countDocuments({ status: "cancelled" });
 
     return res.status(200).json({
       success: true,
-      message: 'تم جلب إحصائيات الطلبات',
+      message: "تم جلب إحصائيات الطلبات",
       data: {
         pending,
         confirmed,
         shipped,
         delivered,
-        cancelled
-      }
+        cancelled,
+      },
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء جلب الإحصائيات'
+      message: "حدث خطأ أثناء جلب الإحصائيات",
     });
   }
 };
@@ -552,17 +610,12 @@ export const updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const allowedStatus = [
-      'pending',
-      'confirmed',
-      'shipped',
-      'delivered'
-    ];
+    const allowedStatus = ["pending", "confirmed", "shipped", "delivered"];
 
     if (!allowedStatus.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'حالة الطلب غير صالحة'
+        message: "حالة الطلب غير صالحة",
       });
     }
 
@@ -570,14 +623,14 @@ export const updateOrderStatus = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'الطلب غير موجود'
+        message: "الطلب غير موجود",
       });
     }
 
-    if (order.status === 'delivered') {
+    if (order.status === "delivered") {
       return res.status(400).json({
         success: false,
-        message: 'لا يمكن تعديل طلب تم تسليمه'
+        message: "لا يمكن تعديل طلب تم تسليمه",
       });
     }
 
@@ -586,14 +639,13 @@ export const updateOrderStatus = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'تم تحديث حالة الطلب بنجاح',
-      data: order
+      message: "تم تحديث حالة الطلب بنجاح",
+      data: order,
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء تحديث حالة الطلب'
+      message: "حدث خطأ أثناء تحديث حالة الطلب",
     });
   }
 };
@@ -607,30 +659,29 @@ export const cancelOrderAdmin = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'الطلب غير موجود'
+        message: "الطلب غير موجود",
       });
     }
 
-    if (order.status === 'delivered') {
+    if (order.status === "delivered") {
       return res.status(400).json({
         success: false,
-        message: 'لا يمكن إلغاء طلب تم تسليمه'
+        message: "لا يمكن إلغاء طلب تم تسليمه",
       });
     }
 
-    order.status = 'cancelled';
+    order.status = "cancelled";
     await order.save();
 
     return res.status(200).json({
       success: true,
-      message: 'تم إلغاء الطلب بنجاح',
-      data: order
+      message: "تم إلغاء الطلب بنجاح",
+      data: order,
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء إلغاء الطلب'
+      message: "حدث خطأ أثناء إلغاء الطلب",
     });
   }
 };

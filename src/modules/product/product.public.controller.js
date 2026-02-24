@@ -10,55 +10,84 @@ export const getPublicProducts = async (req, res) => {
       maxPrice,
       page = 1,
       limit = 20,
-      sortBy = 'createdAt',
-      order = 'desc'
+      sort = "new"
     } = req.query;
 
-    const filter = { isActive: true };
+    const matchStage = { isActive: true };
 
-    if (categoryId) filter.categoryId = categoryId;
+    if (categoryId) matchStage.categoryId = new mongoose.Types.ObjectId(categoryId);
 
     if (search) {
-      filter.name = { $regex: search, $options: 'i' };
+      matchStage.name = { $regex: search, $options: "i" };
     }
 
     if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
+      matchStage.price = {};
+      if (minPrice) matchStage.price.$gte = Number(minPrice);
+      if (maxPrice) matchStage.price.$lte = Number(maxPrice);
     }
 
-    const allowedSort = ['createdAt', 'price'];
-    const sortOptions = {};
-
-    if (allowedSort.includes(sortBy)) {
-      sortOptions[sortBy] = order === 'asc' ? 1 : -1;
-    } else {
-      sortOptions.createdAt = -1;
+    /* SORT */
+    let sortOptions = {};
+    switch (sort) {
+      case "new":
+        sortOptions = { createdAt: -1 };
+        break;
+      case "old":
+        sortOptions = { createdAt: 1 };
+        break;
+      case "price_asc":
+        sortOptions = { price: 1 };
+        break;
+      case "price_desc":
+        sortOptions = { price: -1 };
+        break;
+      default:
+        sortOptions = { createdAt: -1 };
     }
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const products = await Product.find(filter)
-      .populate({
-        path: 'categoryId',
-        match: { isActive: true },
-        select: 'name'
-      })
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(Number(limit));
+    const pipeline = [
+      { $match: matchStage },
 
-    // ❗ نشيل أي منتجات الكاتيجوري بتاعتها مش فعالة
-    const filteredProducts = products.filter(p => p.categoryId);
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category"
+        }
+      },
 
-    const total = await Product.countDocuments(filter);
+      { $unwind: "$category" },
+
+      { $match: { "category.isActive": true } },
+
+      { $sort: sortOptions },
+
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: Number(limit) }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
+        }
+      }
+    ];
+
+    const result = await Product.aggregate(pipeline);
+
+    const products = result[0].data;
+    const total = result[0].totalCount[0]?.count || 0;
 
     return res.status(200).json({
       success: true,
-      message: 'تم جلب المنتجات بنجاح',
       data: {
-        products: filteredProducts,
+        products,
         pagination: {
           total,
           page: Number(page),
@@ -71,7 +100,7 @@ export const getPublicProducts = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء جلب المنتجات'
+      message: "حدث خطأ أثناء جلب المنتجات"
     });
   }
 };
@@ -113,31 +142,42 @@ export const getProductDetails = async (req, res) => {
 
 export const suggestProducts = async (req, res) => {
   try {
-    const { q } = req.query;
+    let { q } = req.query;
 
-    // حماية السيرفر
-    if (!q || q.trim().length < 2) {
-      return res.json({
-        success: true,
-        data: []
-      });
+    if (!q || q.trim().length < 1) {
+      return res.json({ success: true, data: [] });
     }
 
-    const products = await Product.find(
+    q = q.trim().slice(0, 50);
+
+    const products = await Product.aggregate([
       {
-        isActive: true,
-        $text: { $search: q }
+        $match: {
+          isActive: true,
+          name: { $regex: q, $options: "i" } // 🔥 Partial match
+        }
       },
       {
-        name: 1,
-        price: 1,
-        images: { $slice: 1 }
-      }
-    )
-      .limit(10)
-      .lean();
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category"
+        }
+      },
+      { $unwind: "$category" },
+      { $match: { "category.isActive": true } },
+      {
+        $project: {
+          name: 1,
+          price: 1,
+          images: { $slice: ["$images", 1] }
+        }
+      },
+      { $limit: 8 }
+    ]);
 
-    return res.json({
+    res.json({
       success: true,
       data: products
     });
@@ -149,15 +189,13 @@ export const suggestProducts = async (req, res) => {
     });
   }
 };
-
 export const searchProducts = async (req, res) => {
   try {
-    const { q = "", page = 1, limit = 20 } = req.query;
+    let { q = "", page = 1, limit = 20 } = req.query;
 
-    const currentPage = parseInt(page);
-    const perPage = parseInt(limit);
+    q = q.trim().slice(0, 50);
 
-    if (!q.trim()) {
+    if (!q) {
       return res.json({
         success: true,
         data: [],
@@ -165,22 +203,45 @@ export const searchProducts = async (req, res) => {
       });
     }
 
-    const filter = {
+    const currentPage = Number(page);
+    const perPage = Number(limit);
+    const skip = (currentPage - 1) * perPage;
+
+    const matchStage = {
       isActive: true,
-      $text: { $search: q }
+      name: { $regex: q, $options: "i" }
     };
 
-    const total = await Product.countDocuments(filter);
+    const pipeline = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category"
+        }
+      },
+      { $unwind: "$category" },
+      { $match: { "category.isActive": true } },
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: perPage }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
+        }
+      }
+    ];
 
-    const products = await Product.find(
-      filter,
-      { score: { $meta: "textScore" } } // ترتيب حسب الصلة
-    )
-      .sort({ score: { $meta: "textScore" } })
-      .skip((currentPage - 1) * perPage)
-      .limit(perPage)
-      .lean();
-    
+    const result = await Product.aggregate(pipeline);
+
+    const products = result[0].data;
+    const total = result[0].totalCount[0]?.count || 0;
+
     res.json({
       success: true,
       data: products,
