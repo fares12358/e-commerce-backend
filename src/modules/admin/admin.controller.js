@@ -23,7 +23,7 @@ const sendAdminToken = (admin, res) => {
 
   return res.status(200).json({
     success: true,
-    message: 'تم تسجيل دخول الأدمن بنجاح',
+    message: 'تم تسجيل الدخول بنجاح',
     data: {
       id: admin._id,
       name: admin.name,
@@ -92,7 +92,7 @@ export const adminMe = async (req, res) => {
   try {
     return res.status(200).json({
       success: true,
-      message: 'تم جلب بيانات الأدمن بنجاح',
+      message: 'تم جلب بيانات بنجاح',
       data: {
         id: req.admin._id,
         name: req.admin.name,
