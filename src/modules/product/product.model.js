@@ -107,4 +107,5 @@ productSchema.index({ isActive: 1, categoryId: 1, createdAt: -1 });
 productSchema.index({ isActive: 1, categoryId: 1, price: 1 });
 productSchema.index({ name: "text", description: "text" });
 productSchema.index({ name: 1 });
+productSchema.index({ productNumber: 1 });
 export default mongoose.model('Product', productSchema);

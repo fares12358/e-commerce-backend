@@ -8,8 +8,8 @@ const generateProductNumber = async () => {
   const lastProduct = await Product.findOne({
     productNumber: { $exists: true }
   })
-  .sort({ createdAt: -1 })
-  .select('productNumber');
+    .sort({ createdAt: -1 })
+    .select('productNumber');
 
   if (!lastProduct || !lastProduct.productNumber) {
     return 'PRD-000001';
@@ -114,7 +114,7 @@ export const createProduct = async (req, res) => {
 
   } catch (error) {
     console.log(error);
-    
+
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء إنشاء المنتج'
@@ -127,12 +127,12 @@ export const getProducts = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       sortBy = 'createdAt',
       order = 'desc',
       isActive,
       categoryId,
-      name
+      productNumber
     } = req.query;
 
     const query = {};
@@ -146,8 +146,14 @@ export const getProducts = async (req, res) => {
       query.categoryId = categoryId;
     }
 
-    if (name) {
-      query.name = { $regex: name, $options: "i" };
+    if (productNumber) {
+      const cleaned = productNumber.trim().toUpperCase();
+    
+      const formatted = cleaned.startsWith("PRD-")
+        ? cleaned
+        : `PRD-${cleaned.padStart(6, "0")}`;
+    
+      query.productNumber = formatted;
     }
 
     // Sorting

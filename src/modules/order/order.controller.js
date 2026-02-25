@@ -579,6 +579,7 @@ export const getOrderById = async (req, res) => {
 /* ================= ORDER STATS (ADMIN) ================= */
 export const getOrderStats = async (req, res) => {
   try {
+    const total = await Order.countDocuments();
     const pending = await Order.countDocuments({ status: "pending" });
     const confirmed = await Order.countDocuments({ status: "confirmed" });
     const shipped = await Order.countDocuments({ status: "shipped" });
@@ -589,6 +590,7 @@ export const getOrderStats = async (req, res) => {
       success: true,
       message: "تم جلب إحصائيات الطلبات",
       data: {
+        total,
         pending,
         confirmed,
         shipped,
@@ -619,7 +621,7 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    const order = await Order.findById(id);
+    const order = await Order.findById(id).populate("userId");
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -636,6 +638,27 @@ export const updateOrderStatus = async (req, res) => {
 
     order.status = status;
     await order.save();
+
+    const statusMessages = {
+      pending: "طلبك قيد المراجعة حالياً.",
+      confirmed: "تم تأكيد طلبك بنجاح ✅",
+      shipped: "تم شحن طلبك 🚚",
+      delivered: "تم تسليم طلبك 🎉",
+      cancelled: "تم إلغاء طلبك ❌",
+    };
+
+    const message = statusMessages[status];
+    await sendEmail({
+      to: order.userId.email,
+      subject: "تحديث حالة طلبك",
+      html: `
+        <h3>مرحباً ${order.userId.name}</h3>
+        <p>تم تحديث حالة طلبك رقم <strong>${order.orderNumber}</strong></p>
+        <p>${message}</p>
+        <br/>
+        <p>شكراً لتسوقك معنا ❤️</p>
+      `,
+    });
 
     return res.status(200).json({
       success: true,
@@ -655,7 +678,7 @@ export const cancelOrderAdmin = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const order = await Order.findById(id);
+    const order = await Order.findById(id).populate("userId");
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -671,7 +694,25 @@ export const cancelOrderAdmin = async (req, res) => {
     }
 
     order.status = "cancelled";
+    order.cancelledAt = new Date();
+
     await order.save();
+
+    // ✉️ إرسال إشعار للمستخدم
+    await sendEmail({
+      to: order.userId.email,
+      subject: "تم إلغاء طلبك",
+      html: `
+        <h3>مرحباً ${order.userId.name}</h3>
+        <p>نود إعلامك بأنه تم إلغاء طلبك رقم 
+        <strong>${order.orderNumber}</strong></p>
+        
+        <p>إذا كان لديك أي استفسار يرجى التواصل مع خدمة العملاء.</p>
+        <br/>
+        <p>نعتذر عن أي إزعاج 🙏</p>
+      `,
+    });
+
 
     return res.status(200).json({
       success: true,
