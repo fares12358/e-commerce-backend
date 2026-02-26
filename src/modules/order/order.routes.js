@@ -9,7 +9,7 @@ import {
   cancelOrderAdmin,
   getOrderById,
   getOrdersById,
-  getInvoice
+  getInvoice,
 } from './order.controller.js';
 
 import { protect } from '../../middlewares/auth.middleware.js';

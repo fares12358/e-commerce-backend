@@ -5,6 +5,7 @@ import Product from "../product/product.model.js";
 import mongoose from "mongoose";
 import Config from "../admin/config.model.js";
 import sendEmail from "../../utils/sendEmail.js";
+import pusher from "../../utils/pusher.js";
 
 /* ================= CREATE ORDER (USER) ================= */
 export const createOrder = async (req, res) => {
@@ -81,11 +82,31 @@ export const createOrder = async (req, res) => {
 
     await Cart.findByIdAndDelete(cart._id);
 
+    await pusher.trigger("admin-channel", "new-order", {
+      orderNumber: order.orderNumber,
+      totalPrice: order.totalPrice,
+    });
+
+    await fetch("https://onesignal.com/api/v1/notifications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": process.env.SIGNAL_KEY,
+      },
+      body: JSON.stringify({
+        app_id: process.env.SIGNAL_ID,
+        included_segments: ["All"],
+        headings: { en: "طلب جديد 🛒" },
+        contents: { en: `طلب رقم ${order.orderNumber}` },
+      }),
+    });
+
     return res.status(201).json({
       success: true,
       message: "تم إنشاء الطلب بنجاح",
       data: order,
     });
+
   } catch (error) {
     console.log(error);
 
@@ -726,3 +747,4 @@ export const cancelOrderAdmin = async (req, res) => {
     });
   }
 };
+
