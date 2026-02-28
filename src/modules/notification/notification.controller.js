@@ -1,5 +1,8 @@
 import Notification from "./notification.model.js";
 import axios from "axios";
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 // GET settings
 export const getNotificationSettings = async (req, res) => {
