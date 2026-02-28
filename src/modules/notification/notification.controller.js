@@ -56,7 +56,7 @@ export const updateNotificationSettings = async (req, res) => {
         }
 
         if (adminChatId) {
-            const WEBHOOK_URL = `${process.env.BASE_URL}/api/admin/notification/telegram/webhook`;
+            const WEBHOOK_URL = `${process.env.BASE_URL}/admin/notification/telegram/webhook`;
 
             await axios.post(
                 `https://api.telegram.org/bot${process.env.BOT_TOKEN }/setWebhook`,
