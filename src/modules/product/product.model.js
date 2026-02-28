@@ -94,6 +94,11 @@ const productSchema = new mongoose.Schema(
       default: false
     },
 
+    isOffer: {
+      type: Boolean,
+      default: false
+    },
+    
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Admin'

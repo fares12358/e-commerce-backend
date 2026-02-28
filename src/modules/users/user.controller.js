@@ -1,5 +1,6 @@
 import User from './user.model.js';
 import Order from '../order/order.model.js';
+import sendEmail from '../../utils/sendEmail.js';
 
 /* ================= GET MY PROFILE ================= */
 export const getMyProfile = async (req, res) => {
@@ -212,6 +213,51 @@ export const toggleUserStatus = async (req, res) => {
 
     user.isActive = !user.isActive;
     await user.save();
+
+    // ✅ Send Email Notification
+    if (user.email) {
+      if (!user.isActive) {
+        // Account Blocked
+        await sendEmail({
+          to: user.email,
+          subject: "تم إيقاف حسابك مؤقتاً",
+          html: `
+            <div style="font-family: Arial; direction: rtl; text-align: right; line-height:1.8;">
+              <h3>مرحباً ${user.name}</h3>
+              <p>
+                نأسف لإبلاغك أنه تم إيقاف حسابك مؤقتاً من قبل إدارة الموقع.
+              </p>
+              <p>
+                إذا كنت تعتقد أن هذا الإجراء تم بالخطأ، يرجى التواصل مع فريق الدعم.
+              </p>
+              <br/>
+              <p>فريق المتجر</p>
+            </div>
+          `
+        });
+      } else {
+        // Account Reactivated
+        await sendEmail({
+          to: user.email,
+          subject: "تم إعادة تفعيل حسابك",
+          html: `
+            <div style="font-family: Arial; direction: rtl; text-align: right; line-height:1.8;">
+              <h3>مرحباً ${user.name}</h3>
+              <p>
+                يسعدنا إبلاغك بأنه تم إعادة تفعيل حسابك بنجاح 🎉
+              </p>
+              <p>
+                يمكنك الآن تسجيل الدخول واستخدام خدمات الموقع بشكل طبيعي.
+              </p>
+              <br/>
+              <p>نتمنى لك تجربة تسوق ممتعة ❤️</p>
+              <p>فريق المتجر</p>
+            </div>
+          `
+        });
+      }
+    }
+
 
     return res.status(200).json({
       success: true,

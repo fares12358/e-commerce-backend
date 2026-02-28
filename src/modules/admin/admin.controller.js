@@ -5,6 +5,7 @@ import Admin from './admin.model.js';
 import sendEmail from '../../utils/sendEmail.js';
 import Config from './config.model.js';
 import Content from './content.modle.js';
+import adminModel from './admin.model.js';
 
 /* ================= UTIL: SEND ADMIN TOKEN ================= */
 const sendAdminToken = (admin, res) => {
@@ -31,6 +32,7 @@ const sendAdminToken = (admin, res) => {
     }
   });
 };
+
 
 /* ================= ADMIN LOGIN ================= */
 export const adminLogin = async (req, res) => {

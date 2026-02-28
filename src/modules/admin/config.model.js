@@ -9,6 +9,14 @@ const configSchema = new mongoose.Schema(
             phone: { type: String, required: true },
             whatsappLink: { type: String, default: '' },
         },
+        telegramBotToken: {
+            type: String,
+            default: null,
+        },
+        telegramChatId: {
+            type: String,
+            default: null,
+        },
         address: { type: String, default: '' }, // Added address
         shipment: { type: String, default: '' },
         socialMedia: {

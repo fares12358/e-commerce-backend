@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Product from './product.model.js';
 
 /* ================= GET PUBLIC PRODUCTS ================= */
@@ -10,12 +11,15 @@ export const getPublicProducts = async (req, res) => {
       maxPrice,
       page = 1,
       limit = 20,
-      sort = "new"
+      sort = "new",
+      type
     } = req.query;
 
     const matchStage = { isActive: true };
 
-    if (categoryId) matchStage.categoryId = new mongoose.Types.ObjectId(categoryId);
+    if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
+      matchStage.categoryId = new mongoose.Types.ObjectId(categoryId);
+    }
 
     if (search) {
       matchStage.name = { $regex: search, $options: "i" };
@@ -25,6 +29,24 @@ export const getPublicProducts = async (req, res) => {
       matchStage.price = {};
       if (minPrice) matchStage.price.$gte = Number(minPrice);
       if (maxPrice) matchStage.price.$lte = Number(maxPrice);
+    }
+
+    /* TYPE FILTER */
+    if (type) {
+      switch (type) {
+        case "features":
+          matchStage.isFeatured = true;
+          break;
+
+        case "offers":
+          matchStage.isOffer = true;
+          break;
+
+          case "discounts":
+            matchStage.comparePrice = { $ne: null };
+            matchStage.$expr = { $gt: ["$comparePrice", "$price"] };
+            break;
+      }
     }
 
     /* SORT */
@@ -98,6 +120,8 @@ export const getPublicProducts = async (req, res) => {
     });
 
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء جلب المنتجات"

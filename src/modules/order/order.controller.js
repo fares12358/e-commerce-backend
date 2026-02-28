@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import Config from "../admin/config.model.js";
 import sendEmail from "../../utils/sendEmail.js";
 import pusher from "../../utils/pusher.js";
+import { sendTelegramMessage } from "../../services/telegram.service.js";
+import notificationModel from "../notification/notification.model.js";
 
 /* ================= CREATE ORDER (USER) ================= */
 export const createOrder = async (req, res) => {
@@ -82,24 +84,68 @@ export const createOrder = async (req, res) => {
 
     await Cart.findByIdAndDelete(cart._id);
 
-    await pusher.trigger("admin-channel", "new-order", {
-      orderNumber: order.orderNumber,
-      totalPrice: order.totalPrice,
+    // confirm email
+    await sendEmail({
+      to: user.email,
+      subject: `تم انشاء طلبك رقم ${order.orderNumber}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; line-height: 1.8;">
+          <h2 style="color:#111;">مرحباً ${user.name} 👋</h2>
+          <p>
+            تم استلام طلبك بنجاح 🎉
+          </p>
+          <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin:15px 0;">
+            <p><strong>رقم الطلب:</strong> ${order.orderNumber}</p>
+            <p><strong>إجمالي المبلغ:</strong> ${order.totalPrice}</p>
+            <p><strong>طريقة الدفع:</strong> ${order.paymentMethod}</p>
+            <p><strong>حالة الطلب:</strong> ${order.status}</p>
+          </div>
+          <p>
+            سيتم معالجة طلبك في أقرب وقت ممكن، وسنقوم بإشعارك عند تحديث حالته.
+          </p>
+          <br/>
+          <p>
+            شكراً لتسوقك معنا ❤️<br/>
+            فريق المتجر
+          </p>
+        </div>
+      `,
     });
 
-    await fetch("https://onesignal.com/api/v1/notifications", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": process.env.SIGNAL_KEY,
-      },
-      body: JSON.stringify({
-        app_id: process.env.SIGNAL_ID,
-        included_segments: ["All"],
-        headings: { en: "طلب جديد 🛒" },
-        contents: { en: `طلب رقم ${order.orderNumber}` },
-      }),
-    });
+    // notifiation
+
+    const settings = await notificationModel.findOne();
+
+    if (settings &&
+      settings.sectionNotify &&
+      settings.notifyOnNewOrder) {
+      await pusher.trigger("admin-channel", "new-order", {
+        orderNumber: order.orderNumber,
+        totalPrice: order.totalPrice,
+        orderId: order._id
+      });
+    }
+
+    // Send notification to Telegram
+
+    if (
+      settings &&
+      process.env.BOT_TOKEN !== '' &&
+      settings.adminChatId !== '' &&
+      settings.telegramEnabled &&
+      settings.notifyOnNewOrder
+    ) {
+      await sendTelegramMessage(
+        settings.adminChatId,
+        `
+    🛒 <b>NEW ORDER CREATED</b>
+    👤 <b>User:</b> ${req.user.email}
+    💰 <b>Total:</b> ${order.totalPrice}
+    📦 <b>Order #:</b> <code>${order.orderNumber}</code>
+    🕒 <b>Date:</b> ${new Date().toLocaleString()}
+    `
+      );
+    }
 
     return res.status(201).json({
       success: true,
@@ -244,6 +290,8 @@ export const getOrdersById = async (req, res) => {
       data: order,
     });
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       success: false,
       message: "حدث خطأ أثناء جلب الطلب",
@@ -252,6 +300,7 @@ export const getOrdersById = async (req, res) => {
 };
 
 /* ================= CANCEL ORDERS (USER) ================= */
+
 export const cancelOrder = async (req, res) => {
   try {
     const { id } = req.params;
@@ -287,6 +336,21 @@ export const cancelOrder = async (req, res) => {
     order.cancelledAt = new Date();
 
     await order.save();
+
+    // ✉️ إرسال إشعار للمستخدم
+    await sendEmail({
+      to: req.user.email,
+      subject: "تم إلغاء طلبك",
+      html: `
+        <h3>مرحباً ${req.user.name}</h3>
+        <p>نود إعلامك بأنه تم إلغاء طلبك رقم 
+        <strong>${order.orderNumber}</strong></p>
+        
+        <p>إذا كان لديك أي استفسار يرجى التواصل مع خدمة العملاء.</p>
+        <br/>
+        <p>نعتذر عن أي إزعاج 🙏</p>
+      `,
+    });
 
     return res.status(200).json({
       success: true,
@@ -695,10 +759,11 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 /* ================= CANCEL ORDER (ADMIN) ================= */
+
 export const cancelOrderAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-
+    const { reset } = req.body;
     const order = await Order.findById(id).populate("userId");
     if (!order) {
       return res.status(404).json({
@@ -712,6 +777,24 @@ export const cancelOrderAdmin = async (req, res) => {
         success: false,
         message: "لا يمكن إلغاء طلب تم تسليمه",
       });
+    }
+
+    // ❌ منع الإلغاء إذا كان ملغي مسبقاً
+    if (order.status === "cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "الطلب ملغي مسبقاً",
+      });
+    }
+
+    // 🟢 إذا reset = true نرجّع المخزون
+    if (reset === true) {
+      for (const item of order.items) {
+        await Product.updateOne(
+          { _id: item.productId },
+          { $inc: { stock: item.quantity } }
+        );
+      }
     }
 
     order.status = "cancelled";
@@ -733,7 +816,6 @@ export const cancelOrderAdmin = async (req, res) => {
         <p>نعتذر عن أي إزعاج 🙏</p>
       `,
     });
-
 
     return res.status(200).json({
       success: true,

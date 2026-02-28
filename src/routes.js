@@ -14,14 +14,13 @@ import cartRoutes from './modules/cart/cart.routes.js';
 import adsRoutes from './modules/ads/ads.routes.js';
 import dataRoutes from './modules/data/data.routes.js';
 import contactRoutes from './modules/contact/contact.routes.js';
+import notificationRoutes from './modules/notification/notificationRoutes.routes.js';
 
 const router = express.Router();
 
-// import attributeRoutes from './modules/attribute/attribute.routes.js';
-// router.use('/admin/attributes', attributeRoutes);
-
 router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
+router.use('/admin/notification', notificationRoutes);
 router.use('/admin/categories', categoryRoutes);
 router.use('/admin/products', productRoutes);
 router.use('/admin/dashboard', dashboardRoutes);
