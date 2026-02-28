@@ -3,18 +3,15 @@ import axios from "axios";
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 // GET settings
 export const getNotificationSettings = async (req, res) => {
     try {
         let settings = await Notification.findOne();
-
         if (!settings) {
             settings = await Notification.create({
                 adminChatId: "",
             });
         }
-
         res.status(200).json({
             success: true,
             data: settings
@@ -57,9 +54,8 @@ export const updateNotificationSettings = async (req, res) => {
 
         if (adminChatId) {
             const WEBHOOK_URL = `${process.env.BASE_URL}/admin/notification/telegram/webhook`;
-
             await axios.post(
-                `https://api.telegram.org/bot${process.env.BOT_TOKEN }/setWebhook`,
+                `https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook`,
                 { url: WEBHOOK_URL }
             );
         }
