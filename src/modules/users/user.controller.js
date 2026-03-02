@@ -70,7 +70,7 @@ export const updateMyProfile = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const { email, isActive, sort } = req.query;
+    const { email, isActive, sort = "desc", page = 1, limit = 12 } = req.query;
 
     const userQuery = {};
 
@@ -82,9 +82,16 @@ export const getAllUsers = async (req, res) => {
       userQuery.isActive = isActive === "true";
     }
 
+    const pageNumber = parseInt(page);
+    const pageSize = parseInt(limit);
+
+    const totalUsers = await User.countDocuments(userQuery);
+
     const users = await User.find(userQuery)
       .sort({ createdAt: sort === "asc" ? 1 : -1 })
-      .lean(); // important for performance
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .lean();
 
     const userIds = users.map(u => u._id);
 
@@ -136,7 +143,15 @@ export const getAllUsers = async (req, res) => {
 
     return res.json({
       success: true,
-      data: formatted
+      data: {
+        users: formatted,
+        pagination: {
+          total: totalUsers,
+          page: pageNumber,
+          totalPages: Math.ceil(totalUsers / pageSize),
+          limit: pageSize
+        }
+      }
     });
 
   } catch (error) {
@@ -151,6 +166,9 @@ export const getAllUsers = async (req, res) => {
 export const getUserDetails = async (req, res) => {
   try {
     const { id } = req.params;
+    const { page = 1, limit = 8 } = req.query;
+    const pageNumber = parseInt(page);
+    const pageSize = parseInt(limit);
 
     const user = await User.findById(id)
       .select('-password -resetPasswordToken -resetPasswordExpire');
@@ -161,10 +179,26 @@ export const getUserDetails = async (req, res) => {
         message: 'User not found'
       });
     }
+    // 🔥 Get total orders count
+    const totalOrders = await Order.countDocuments({ userId: id });
 
+    // 🔥 Get paginated orders
     const orders = await Order.find({ userId: id })
       .sort({ createdAt: -1 })
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
       .populate('items.productId', 'name images price');
+
+    // 🔥 Aggregate stats (efficient)
+    const statsAgg = await Order.aggregate([
+      { $match: { userId: user._id } },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
 
     const stats = {
       total: orders.length,
@@ -175,17 +209,22 @@ export const getUserDetails = async (req, res) => {
       cancelled: 0
     };
 
-    orders.forEach(o => {
-      stats[o.status]++;
+    statsAgg.forEach(s => {
+      stats[s._id] = s.count;
     });
 
     return res.status(200).json({
       success: true,
-      message: 'User details loaded',
       data: {
         user,
         orders,
-        stats
+        stats,
+        pagination: {
+          total: totalOrders,
+          page: pageNumber,
+          totalPages: Math.ceil(totalOrders / pageSize),
+          limit: pageSize
+        }
       }
     });
 

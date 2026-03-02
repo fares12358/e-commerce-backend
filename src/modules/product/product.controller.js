@@ -132,7 +132,8 @@ export const getProducts = async (req, res) => {
       order = 'desc',
       isActive,
       categoryId,
-      productNumber
+      productNumber,
+      stockStatus
     } = req.query;
 
     const query = {};
@@ -145,14 +146,20 @@ export const getProducts = async (req, res) => {
     if (categoryId) {
       query.categoryId = categoryId;
     }
+    if (stockStatus === "instock") {
+      query.stock = { $gt: 0 };
+    }
 
+    if (stockStatus === "outstock") {
+      query.stock = { $lte: 0 };
+    }
     if (productNumber) {
       const cleaned = productNumber.trim().toUpperCase();
-    
+
       const formatted = cleaned.startsWith("PRD-")
         ? cleaned
         : `PRD-${cleaned.padStart(6, "0")}`;
-    
+
       query.productNumber = formatted;
     }
 
