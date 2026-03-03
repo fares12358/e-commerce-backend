@@ -37,6 +37,11 @@ const controllersSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    
+    invoice: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // auto createdAt & updatedAt

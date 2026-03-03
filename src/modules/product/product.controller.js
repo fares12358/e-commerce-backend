@@ -3,25 +3,24 @@ import {
   uploadImage,
   deleteImage
 } from '../../utils/cloudinary.js';
+import Controllers from '../contorlles/contorlles.model.js';
 
 const generateProductNumber = async () => {
-  const lastProduct = await Product.findOne({
-    productNumber: { $exists: true }
-  })
-    .sort({ createdAt: -1 })
-    .select('productNumber');
+  let isUnique = false;
+  let productNumber;
 
-  if (!lastProduct || !lastProduct.productNumber) {
-    return 'PRD-000001';
+  while (!isUnique) {
+    const randomNumber = Math.floor(100000 + Math.random() * 900000);
+    productNumber = `PRD-${randomNumber}`;
+
+    const existing = await Product.findOne({ productNumber });
+
+    if (!existing) {
+      isUnique = true;
+    }
   }
 
-  const lastNumber = Number(
-    lastProduct.productNumber.replace('PRD-', '')
-  );
-
-  const newNumber = String(lastNumber + 1).padStart(6, '0');
-
-  return `PRD-${newNumber}`;
+  return productNumber;
 };
 
 
@@ -46,6 +45,22 @@ export const createProduct = async (req, res) => {
         success: false,
         message: 'اسم المنتج والسعر والتصنيف مطلوبة'
       });
+    }
+    const controller = await Controllers.findOne();
+
+    if (!controller) {
+      return res.status(400).json({
+        success: false,
+        message: 'لم يتم العثور على إعدادات النظام'
+      });
+    }
+    const totalProducts = await Product.countDocuments()
+
+    if (totalProducts >= controller.maxProductNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'وصلت الى الحد الاقصي لعدد المنتجات الخاص بك'
+      })
     }
 
     // لو attributes جاية كـ string (FormData)
@@ -114,10 +129,17 @@ export const createProduct = async (req, res) => {
 
   } catch (error) {
     console.log(error);
+    
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "رقم المنتج موجود مسبقاً"
+      });
+    }
 
     return res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء إنشاء المنتج'
+      message: "حدث خطأ أثناء إنشاء المنتج"
     });
   }
 };

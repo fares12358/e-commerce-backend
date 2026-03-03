@@ -16,9 +16,12 @@ import dataRoutes from './modules/data/data.routes.js';
 import contactRoutes from './modules/contact/contact.routes.js';
 import notificationRoutes from './modules/notification/notificationRoutes.routes.js';
 import contorllesRoutes from './modules/contorlles/contorlles.routes.js';
+import { checkBackendStatus } from './middlewares/checkBackendStatus.js';
 
 const router = express.Router();
 
+router.use('/controllers', contorllesRoutes);
+router.use(checkBackendStatus)
 router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
 router.use('/admin/notification', notificationRoutes);
@@ -36,6 +39,5 @@ router.use('/categories', publicCategoryRoutes);
 router.use('/cart', cartRoutes);
 router.use('/contact', contactRoutes);
 
-router.use('/contorlles', contorllesRoutes);
 
 export default router;

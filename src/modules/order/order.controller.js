@@ -8,6 +8,7 @@ import sendEmail from "../../utils/sendEmail.js";
 import pusher from "../../utils/pusher.js";
 import { sendTelegramMessage } from "../../services/telegram.service.js";
 import notificationModel from "../notification/notification.model.js";
+import Controllers from "../contorlles/contorlles.model.js";
 
 /* ================= CREATE ORDER (USER) ================= */
 export const createOrder = async (req, res) => {
@@ -84,11 +85,16 @@ export const createOrder = async (req, res) => {
 
     await Cart.findByIdAndDelete(cart._id);
 
-    // confirm email
-    await sendEmail({
-      to: user.email,
-      subject: `تم انشاء طلبك رقم ${order.orderNumber}`,
-      html: `
+    const settings = await notificationModel.findOne();
+    const controller = await Controllers.findOne()
+
+    if (controller && controller.emailNotify) {
+
+      // confirm email
+      await sendEmail({
+        to: user.email,
+        subject: `تم انشاء طلبك رقم ${order.orderNumber}`,
+        html: `
         <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right; line-height: 1.8;">
           <h2 style="color:#111;">مرحباً ${user.name} 👋</h2>
           <p>
@@ -110,13 +116,12 @@ export const createOrder = async (req, res) => {
           </p>
         </div>
       `,
-    });
+      });
+    }
 
     // notifiation
 
-    const settings = await notificationModel.findOne();
-
-    if (settings &&
+    if (controller && controller.notification && settings &&
       settings.sectionNotify &&
       settings.notifyOnNewOrder) {
       await pusher.trigger("admin-channel", "new-order", {
@@ -129,6 +134,7 @@ export const createOrder = async (req, res) => {
     // Send notification to Telegram
 
     if (
+      controller && controller.notification &&
       settings &&
       process.env.BOT_TOKEN !== '' &&
       settings.adminChatId !== '' &&
@@ -337,11 +343,14 @@ export const cancelOrder = async (req, res) => {
 
     await order.save();
 
-    // ✉️ إرسال إشعار للمستخدم
-    await sendEmail({
-      to: req.user.email,
-      subject: "تم إلغاء طلبك",
-      html: `
+    const controller = await Controllers.findOne()
+
+    if (controller && controller.emailNotify) {
+      // ✉️ إرسال إشعار للمستخدم
+      await sendEmail({
+        to: req.user.email,
+        subject: "تم إلغاء طلبك",
+        html: `
         <h3>مرحباً ${req.user.name}</h3>
         <p>نود إعلامك بأنه تم إلغاء طلبك رقم 
         <strong>${order.orderNumber}</strong></p>
@@ -349,8 +358,9 @@ export const cancelOrder = async (req, res) => {
         <p>إذا كان لديك أي استفسار يرجى التواصل مع خدمة العملاء.</p>
         <br/>
         <p>نعتذر عن أي إزعاج 🙏</p>
-      `,
-    });
+        `,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -368,6 +378,15 @@ export const cancelOrder = async (req, res) => {
 export const getInvoice = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const controller = await Controllers.findOne()
+
+    if (controller && controller.invoice) {
+      res.status(404).json({
+        success: false,
+        message: "خدمة الفواتير غير مفعلة",
+      })
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -739,17 +758,21 @@ export const updateOrderStatus = async (req, res) => {
     };
 
     const message = statusMessages[status];
-    await sendEmail({
-      to: order.userId.email,
-      subject: "تحديث حالة طلبك",
-      html: `
+    const controller = await Controllers.findOne()
+
+    if (controller && controller.emailNotify) {
+      await sendEmail({
+        to: order.userId.email,
+        subject: "تحديث حالة طلبك",
+        html: `
         <h3>مرحباً ${order.userId.name}</h3>
         <p>تم تحديث حالة طلبك رقم <strong>${order.orderNumber}</strong></p>
         <p>${message}</p>
         <br/>
         <p>شكراً لتسوقك معنا ❤️</p>
-      `,
-    });
+        `,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -809,10 +832,13 @@ export const cancelOrderAdmin = async (req, res) => {
     await order.save();
 
     // ✉️ إرسال إشعار للمستخدم
-    await sendEmail({
-      to: order.userId.email,
-      subject: "تم إلغاء طلبك",
-      html: `
+    const controller = await Controllers.findOne()
+
+    if (controller && controller.emailNotify) {
+      await sendEmail({
+        to: order.userId.email,
+        subject: "تم إلغاء طلبك",
+        html: `
         <h3>مرحباً ${order.userId.name}</h3>
         <p>نود إعلامك بأنه تم إلغاء طلبك رقم 
         <strong>${order.orderNumber}</strong></p>
@@ -820,8 +846,9 @@ export const cancelOrderAdmin = async (req, res) => {
         <p>إذا كان لديك أي استفسار يرجى التواصل مع خدمة العملاء.</p>
         <br/>
         <p>نعتذر عن أي إزعاج 🙏</p>
-      `,
-    });
+        `,
+      });
+    }
 
     return res.status(200).json({
       success: true,

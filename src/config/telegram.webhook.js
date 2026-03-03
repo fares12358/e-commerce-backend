@@ -2,6 +2,7 @@ import axios from "axios";
 import notificationModel from "../modules/notification/notification.model.js";
 import Order from "../modules/order/order.model.js";
 import User from "../modules/users/user.model.js";
+import Controllers from "../modules/contorlles/contorlles.model.js";
 
 export const telegramWebhook = async (req, res) => {
     let chatId = null;
@@ -15,13 +16,26 @@ export const telegramWebhook = async (req, res) => {
 
         const settings = await notificationModel.findOne();
 
+        const controller = await Controllers.findOne()
+
+        // If no settings or bot token → ignore
         if (!settings || !process.env.BOT_TOKEN) {
             return res.sendStatus(200);
         }
 
-        // if (chatId.toString() !== settings.adminChatId) {
-        //     return res.sendStatus(200);
-        // }
+        // If telegram bot feature is disabled
+        if (!controller?.telegramBot) {
+            await axios.post(
+                `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
+                {
+                    chat_id: chatId,
+                    text: "🚫 You should pay to use this bot.",
+                }
+            );
+
+            return res.sendStatus(200);
+        }
+
 
         const TELEGRAM_API = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`;
 
@@ -43,6 +57,22 @@ export const telegramWebhook = async (req, res) => {
                 ...options,
             });
         };
+
+        /* ================= GET ID ================= */
+
+        if (text === "GET_ID") {
+            await sendMessage(
+                `✅ <b>Your Chat ID:</b>\n\n<code>${chatId}</code>`,
+                { parse_mode: "HTML" }
+            );
+            return res.sendStatus(200);
+        }
+
+        // Only allow admin chat ID for other commands
+        if (String(chatId) !== String(settings.adminChatId)) {
+            return res.sendStatus(200); // silently ignore
+        }
+
 
         /* ================= Full Dashboard ================= */
 
@@ -217,15 +247,7 @@ export const telegramWebhook = async (req, res) => {
             return res.sendStatus(200);
         }
 
-        /* ================= GET ID ================= */
 
-        if (text === "GET_ID") {
-            await sendMessage(
-                `✅ <b>Your Chat ID:</b>\n\n<code>${chatId}</code>`,
-                { parse_mode: "HTML" }
-            );
-            return res.sendStatus(200);
-        }
 
         /* ================= Pending Orders ================= */
 
