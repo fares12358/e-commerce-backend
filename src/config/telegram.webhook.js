@@ -23,18 +23,6 @@ export const telegramWebhook = async (req, res) => {
             return res.sendStatus(200);
         }
 
-        // If telegram bot feature is disabled
-        if (!controller?.telegramBot) {
-            await axios.post(
-                `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
-                {
-                    chat_id: chatId,
-                    text: "🚫 You should pay to use this bot.",
-                }
-            );
-
-            return res.sendStatus(200);
-        }
 
 
         const TELEGRAM_API = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`;
@@ -68,11 +56,29 @@ export const telegramWebhook = async (req, res) => {
             return res.sendStatus(200);
         }
 
-        // Only allow admin chat ID for other commands
+        // If user is NOT admin
         if (String(chatId) !== String(settings.adminChatId)) {
-            return res.sendStatus(200); // silently ignore
+
+            // If command is NOT GET_ID → tell them to pay
+            await sendMessage(
+                "🚫 You should pay to use this bot.\n\nUse GET_ID to get your Chat ID."
+            );
+
+            return res.sendStatus(200);
         }
 
+        // If telegram bot feature is disabled
+        if (!controller?.telegramBot) {
+            await axios.post(
+                `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
+                {
+                    chat_id: chatId,
+                    text: "🚫 You should pay to use this bot.",
+                }
+            );
+
+            return res.sendStatus(200);
+        }
 
         /* ================= Full Dashboard ================= */
 
