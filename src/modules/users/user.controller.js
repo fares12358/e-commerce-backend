@@ -65,7 +65,8 @@ export const updateMyProfile = async (req, res) => {
   }
 };
 
-/* ================= ADMIN: GET ALL USERS ================= */
+
+
 /* ================= ADMIN: GET USERS WITH STATS + FILTER ================= */
 
 export const getAllUsers = async (req, res) => {
@@ -311,6 +312,76 @@ export const toggleUserStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء تحديث الحالة'
+    });
+  }
+};
+
+/* ================= admin: delete use account ================= */
+
+export const deleteuserAccount = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "المستخدم غير موجود."
+      });
+    }
+
+    // 1️⃣ التحقق من وجود طلبات نشطة
+    const activeOrder = await Order.findOne({
+      userId,
+      status: { $in: ["pending", "confirmed", "shipped"] }
+    });
+
+    if (activeOrder) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "لا يمكن حذف الحساب لوجود طلبات قيد التنفيذ. يرجى إنهاء الطلبات أولاً."
+      });
+    }
+
+    // 2️⃣ حذف الحساب
+    await User.findByIdAndDelete(userId);
+
+    // 3️⃣ إرسال الإيميل بدون كسر العملية
+    sendEmail({
+      to: user.email,
+      subject: "تم حذف حسابك",
+      html: `
+        <h3>مرحباً ${user.name}</h3>
+
+        <p>
+          نود إعلامك بأنه تم حذف حسابك من منصتنا بنجاح.
+        </p>
+
+        <p>
+          إذا لم تكن أنت من قام بهذا الإجراء أو لديك أي استفسار،
+          يرجى التواصل مع فريق الدعم فوراً.
+        </p>
+
+        <br/>
+        <p>نشكر ثقتك بنا ونتمنى لك كل التوفيق 🙏</p>
+      `,
+    }).catch(err => {
+      console.error("Email sending failed:", err);
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "تم حذف الحساب بنجاح."
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message:
+        "حدث خطأ أثناء محاولة حذف الحساب. يرجى المحاولة مرة أخرى."
     });
   }
 };

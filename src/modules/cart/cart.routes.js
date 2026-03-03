@@ -8,10 +8,12 @@ import {
 } from './cart.controller.js';
 
 import { protect } from '../../middlewares/auth.middleware.js';
+import { usersLimiter } from '../../middlewares/rateLimit.js';
 
 const router = express.Router();
 
 router.use(protect);
+router.use(usersLimiter);
 
 router.get('/', getMyCart);
 router.post('/add', addToCart);

@@ -22,6 +22,32 @@ const notificationSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    SmtpServer: {
+      type: Boolean,
+      default: false,
+    },
+    email: {
+      type: String,
+      default: '',
+    },
+    appPassword: {
+      type: String,
+      default: '',
+    },
+    host: {
+      type: String,
+      default: '',
+    },
+    port: {
+      type: String,
+      default: '',
+    },
+    secure: {
+      type: Boolean,
+      default: false,
+    },
+
   },
   { timestamps: true }
 );

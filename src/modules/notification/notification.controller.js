@@ -31,6 +31,12 @@ export const updateNotificationSettings = async (req, res) => {
             notifyOnNewOrder,
             notifySound,
             sectionNotify,
+            SmtpServer,
+            email,
+            appPassword,
+            host,
+            port,
+            secure,
         } = req.body;
 
         let settings = await Notification.findOne();
@@ -42,6 +48,12 @@ export const updateNotificationSettings = async (req, res) => {
                 notifyOnNewOrder,
                 notifySound,
                 sectionNotify,
+                SmtpServer,
+                email,
+                appPassword,
+                host,
+                port,
+                secure,
             });
         } else {
             settings.adminChatId = adminChatId;
@@ -49,6 +61,14 @@ export const updateNotificationSettings = async (req, res) => {
             settings.notifyOnNewOrder = notifyOnNewOrder;
             settings.notifySound = notifySound;
             settings.sectionNotify = sectionNotify;
+
+            settings.SmtpServer = SmtpServer;
+            settings.email = email;
+            settings.appPassword = appPassword;
+            settings.host = host;
+            settings.port = port;
+            settings.secure = secure;
+
             await settings.save();
         }
 

@@ -7,10 +7,12 @@ import {
 } from './user.location.controller.js';
 
 import { protect } from '../../middlewares/auth.middleware.js';
+import { usersLimiter } from '../../middlewares/rateLimit.js';
 
 const router = express.Router();
 
 router.use(protect);
+router.use(usersLimiter);
 
 router.get('/user', getMyLocations);
 router.post('/', addLocation);

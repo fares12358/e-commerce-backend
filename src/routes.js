@@ -15,6 +15,7 @@ import adsRoutes from './modules/ads/ads.routes.js';
 import dataRoutes from './modules/data/data.routes.js';
 import contactRoutes from './modules/contact/contact.routes.js';
 import notificationRoutes from './modules/notification/notificationRoutes.routes.js';
+import contorllesRoutes from './modules/contorlles/contorlles.routes.js';
 
 const router = express.Router();
 
@@ -25,6 +26,7 @@ router.use('/admin/categories', categoryRoutes);
 router.use('/admin/products', productRoutes);
 router.use('/admin/dashboard', dashboardRoutes);
 router.use('/admin/ads', adsRoutes);
+
 router.use('/data', dataRoutes);
 router.use('/users', userRoutes);
 router.use('/users/location', userLocation);
@@ -33,5 +35,7 @@ router.use('/products', publicProductRoutes);
 router.use('/categories', publicCategoryRoutes);
 router.use('/cart', cartRoutes);
 router.use('/contact', contactRoutes);
+
+router.use('/contorlles', contorllesRoutes);
 
 export default router;

@@ -639,10 +639,15 @@ export const getOrderById = async (req, res) => {
       });
     }
 
-    // 🎯 Extract selected location
-    const selectedLocation = order.userId.locations.find(
-      (loc) => loc._id.toString() === order.locationId.toString()
-    );
+    let selectedLocation = null;
+
+    // 🔥 تحقق من وجود المستخدم
+    if (order.userId && order.userId.locations?.length) {
+      selectedLocation = order.userId.locations.find(
+        (loc) =>
+          loc._id.toString() === order.locationId?.toString()
+      );
+    }
 
     return res.status(200).json({
       success: true,
@@ -650,6 +655,7 @@ export const getOrderById = async (req, res) => {
       data: {
         ...order.toObject(),
         location: selectedLocation || null,
+        userDeleted: !order.userId
       },
     });
   } catch (error) {

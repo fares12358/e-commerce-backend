@@ -132,6 +132,14 @@ export const verifyRegisterOtp = async (req, res) => {
 
 export const me = async (req, res) => {
   try {
+
+    if (!req.user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "تم تعليق هذا الحساب، يرجى التواصل مع الدعم."
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: 'تم تسجيل الدخول تلقائياً',
@@ -167,6 +175,13 @@ export const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'بيانات الدخول غير صحيحة'
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "تم تعليق هذا الحساب، يرجى التواصل مع الدعم."
       });
     }
 
@@ -230,6 +245,13 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "تم تعليق هذا الحساب، يرجى التواصل مع الدعم."
+      });
+    }
+
     const resetToken = user.getResetToken();
     await user.save({ validateBeforeSave: false });
 
@@ -279,6 +301,13 @@ export const resetPassword = async (req, res) => {
       });
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "تم تعليق هذا الحساب، يرجى التواصل مع الدعم."
+      });
+    }
+
     user.password = await bcrypt.hash(req.body.password, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
@@ -317,7 +346,13 @@ export const changePassword = async (req, res) => {
         message: 'المستخدم غير موجود'
       });
     }
-    
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "تم تعليق هذا الحساب، يرجى التواصل مع الدعم."
+      });
+    }
 
     // تحقق من كلمة المرور الحالية
     const isMatch = await bcrypt.compare(current, user.password);
