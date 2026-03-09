@@ -18,7 +18,7 @@ export const authLimiter = rateLimit({
 
 export const usersLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 دقيقة
-    max: 150, // 150 طلب
+    max: 250, // 150 طلب
     standardHeaders: true,
     legacyHeaders: false,
     message: {

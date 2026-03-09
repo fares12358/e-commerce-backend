@@ -23,8 +23,6 @@ export const telegramWebhook = async (req, res) => {
             return res.sendStatus(200);
         }
 
-
-
         const TELEGRAM_API = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`;
 
         /* ================= Helpers ================= */

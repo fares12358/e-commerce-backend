@@ -35,7 +35,7 @@ router.post('/content/section', protectAdmin, addSection);
 router.put('/content/section', protectAdmin, updateSection);
 router.delete('/content/section', protectAdmin, deleteSection);
 
-// router.use(authLimiter)
+router.use(authLimiter)
 router.post('/login', adminLogin);
 router.post('/logout', adminLogout);
 router.post('/forgot-password', adminForgotPassword);
