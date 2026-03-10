@@ -28,11 +28,10 @@ router.patch('/:id/status', protectAdmin, updateOrderStatus);
 router.patch('/:id/cancel', protectAdmin, cancelOrderAdmin);
 
 /* ===== User ===== */
-router.use(usersLimiter);
-router.post('/', protect, createOrder);
-router.get('/my', protect, getMyOrders);
-router.get('/my/:id', protect, getOrdersById);
-router.patch('/:id', protect, cancelOrder);
-router.get('/invoice/:id', protect, getInvoice);
+router.post('/', protect, usersLimiter, createOrder);
+router.get('/my', protect, usersLimiter, getMyOrders);
+router.get('/my/:id', protect, usersLimiter, getOrdersById);
+router.patch('/:id', protect, usersLimiter, cancelOrder);
+router.get('/invoice/:id', protect, usersLimiter, getInvoice);
 
 export default router;

@@ -15,13 +15,12 @@ import { authLimiter } from '../../middlewares/rateLimit.js';
 const router = express.Router();
 
 router.get('/me', protect, me);
-router.use(authLimiter)
-router.post('/register/send-otp', sendRegisterOtp);
-router.post('/register/verify-otp', verifyRegisterOtp);
-router.post('/login', login);
-router.post('/logout', logout);
-router.post('/forgot-password', forgotPassword);
-router.put('/reset-password/:token', resetPassword);
-router.put('/me', protect, changePassword);
+router.post('/register/send-otp', authLimiter, sendRegisterOtp);
+router.post('/register/verify-otp', authLimiter, verifyRegisterOtp);
+router.post('/login', authLimiter, login);
+router.post('/logout', authLimiter, logout);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.put('/reset-password/:token', authLimiter, resetPassword);
+router.put('/me', protect, authLimiter, changePassword);
 
 export default router;

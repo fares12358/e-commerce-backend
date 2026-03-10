@@ -23,8 +23,7 @@ router.patch('/:id/toggle-status', protectAdmin, toggleUserStatus);
 router.delete('/:userId', protectAdmin, deleteuserAccount);
 
 /* ===== User ===== */
-router.use(usersLimiter);
-router.get('/me', protect, getMyProfile);
-router.put('/me', protect, updateMyProfile);
+router.get('/me', protect, usersLimiter, getMyProfile);
+router.put('/me', protect, usersLimiter, updateMyProfile);
 
 export default router;

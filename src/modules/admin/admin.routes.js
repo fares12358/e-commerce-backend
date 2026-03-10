@@ -35,10 +35,9 @@ router.post('/content/section', protectAdmin, addSection);
 router.put('/content/section', protectAdmin, updateSection);
 router.delete('/content/section', protectAdmin, deleteSection);
 
-router.use(authLimiter)
-router.post('/login', adminLogin);
-router.post('/logout', adminLogout);
-router.post('/forgot-password', adminForgotPassword);
-router.put('/reset-password/:token', adminResetPassword);
+router.post('/login', authLimiter, adminLogin);
+router.post('/logout',  authLimiter,adminLogout);
+router.post('/forgot-password', authLimiter, adminForgotPassword);
+router.put('/reset-password/:token',  authLimiter,adminResetPassword);
 
 export default router;

@@ -44,6 +44,20 @@ export const telegramWebhook = async (req, res) => {
             });
         };
 
+        /* ================= START ================= */
+
+        if (text === "/START") {
+            await sendMessage(`
+        <b>Bot is active</b>
+        
+        ✅ <b>Your Chat ID:</b>
+        
+        <code>${chatId}</code>
+        `, { parse_mode: "HTML" });
+        
+            return res.sendStatus(200);
+        }
+
         /* ================= GET ID ================= */
 
         if (text === "GET_ID") {
@@ -59,7 +73,8 @@ export const telegramWebhook = async (req, res) => {
 
             // If command is NOT GET_ID → tell them to pay
             await sendMessage(
-                "🚫 You should pay to use this bot.\n\nUse GET_ID to get your Chat ID."
+                `🚫 You should pay to use this bot.\n\nUse <code>GET_ID</code> to get your Chat ID.`,
+                { parse_mode: "HTML" }
             );
 
             return res.sendStatus(200);

@@ -4,7 +4,6 @@ import { usersLimiter } from "../../middlewares/rateLimit.js";
 
 const router = express.Router();
 
-router.use(usersLimiter);
-router.get("/", getWebsiteInitData);
+router.get("/", usersLimiter, getWebsiteInitData);
 
 export default router;

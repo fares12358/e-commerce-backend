@@ -9,10 +9,9 @@ import { usersLimiter } from '../../middlewares/rateLimit.js';
 
 const router = express.Router();
 
-router.use(usersLimiter);
-router.get('/', getPublicProducts);
-router.get('/details/:id', getProductDetails);
-router.get('/suggest', suggestProducts);
-router.get("/search", searchProducts);
+router.get('/', usersLimiter, getPublicProducts);
+router.get('/details/:id', usersLimiter, getProductDetails);
+router.get('/suggest', usersLimiter, suggestProducts);
+router.get("/search", usersLimiter, searchProducts);
 
 export default router;

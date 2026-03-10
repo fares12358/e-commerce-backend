@@ -13,12 +13,11 @@ import { usersLimiter } from '../../middlewares/rateLimit.js';
 const router = express.Router();
 
 router.use(protect);
-router.use(usersLimiter);
 
-router.get('/', getMyCart);
-router.post('/add', addToCart);
-router.put('/update', updateCartItem);
-router.delete('/remove/:itemId', removeFromCart);
-router.delete('/clear', clearCart);
+router.get('/', usersLimiter, getMyCart);
+router.post('/add', usersLimiter, addToCart);
+router.put('/update', usersLimiter, updateCartItem);
+router.delete('/remove/:itemId', usersLimiter, removeFromCart);
+router.delete('/clear', usersLimiter, clearCart);
 
 export default router;

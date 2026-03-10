@@ -18,12 +18,12 @@ export const authLimiter = rateLimit({
 
 export const usersLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 دقيقة
-    max: 250, // 150 طلب
+    max: 150, // 150 طلب
     standardHeaders: true,
     legacyHeaders: false,
     message: {
         success: false,
         message:
-            "تم تجاوز الحد المسموح من الطلبات. يرجى المحاولة لاحقاً."
+            "تم تجاوز الحد المسموح من الطلبات. يرجى المحاولة لاحقاً بعد 15 دقيقة"
     },
 });

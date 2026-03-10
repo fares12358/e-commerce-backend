@@ -12,10 +12,9 @@ import { usersLimiter } from '../../middlewares/rateLimit.js';
 const router = express.Router();
 
 router.use(protect);
-router.use(usersLimiter);
 
-router.get('/user', getMyLocations);
-router.post('/', addLocation);
-router.delete('/:locationId', deleteLocation);
-router.patch('/:locationId/default', setDefaultLocation);
+router.get('/user', usersLimiter, getMyLocations);
+router.post('/', usersLimiter, addLocation);
+router.delete('/:locationId', usersLimiter, deleteLocation);
+router.patch('/:locationId/default', usersLimiter, setDefaultLocation);
 export default router;
