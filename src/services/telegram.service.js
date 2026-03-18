@@ -5,7 +5,7 @@ dotenv.config();
 
 export const sendTelegramMessage = async (chatId, text) => {
   try {
-    await axios.post(`${process.env.BASE_API}/telegram/send`, {
+    await axios.post(`${process.env.BOT_API}/telegram/send`, {
       chatId,
       message: text
     });
