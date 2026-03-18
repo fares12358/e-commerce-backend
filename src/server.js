@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
   res.send('Hello, e-commerce Backend!');
 });
 
-app.listen(PORT,  () => {
+app.listen(PORT,  () => { 
   console.log(`Server running on port ${PORT}`);
 });
 

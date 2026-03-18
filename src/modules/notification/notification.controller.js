@@ -1,7 +1,4 @@
 import Notification from "./notification.model.js";
-import axios from "axios";
-import dotenv from 'dotenv';
-dotenv.config();
 
 // GET settings
 export const getNotificationSettings = async (req, res) => {
@@ -71,15 +68,6 @@ export const updateNotificationSettings = async (req, res) => {
 
             await settings.save();
         }
-
-        if (adminChatId) {
-            const WEBHOOK_URL = `${process.env.BASE_URL}/admin/notification/telegram/webhook`;
-            await axios.post(
-                `https://api.telegram.org/bot${process.env.BOT_TOKEN}/setWebhook`,
-                { url: WEBHOOK_URL }
-            );
-        }
-
         res.status(200).json({
             success: true,
             message: "Notification settings updated successfully",

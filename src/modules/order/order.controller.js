@@ -134,9 +134,8 @@ export const createOrder = async (req, res) => {
     // Send notification to Telegram
 
     if (
-      controller && controller.notification &&
+      controller && controller.notification && controller.telegramBot &&
       settings &&
-      process.env.BOT_TOKEN !== '' &&
       settings.adminChatId !== '' &&
       settings.telegramEnabled &&
       settings.notifyOnNewOrder

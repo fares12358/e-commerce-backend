@@ -4,7 +4,7 @@ import rateLimit from "express-rate-limit";
 
 export const authLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 دقائق
-    max: 5, // 5 محاولات فقط
+    max: 10, // 10 محاولات فقط
     standardHeaders: true,
     legacyHeaders: false,
     message: {
