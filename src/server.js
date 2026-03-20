@@ -9,7 +9,7 @@ connectDB();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: ['http://192.168.8.26:3000', 'http://192.168.8.26:3001','http://localhost:3000','http://localhost:3001','store.fares-dev.com','dashboard.fares-dev.com'],
+  origin: ['http://192.168.8.26:3000', 'http://192.168.8.26:3001','http://localhost:3000','http://localhost:3001','store.fares-dev.com','store2.fares-dev.com','store3.fares-dev.com','store4.fares-dev.com','store5.fares-dev.com','dashboard.fares-dev.com'],
   credentials: true,
 }));
 
