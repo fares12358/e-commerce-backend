@@ -148,7 +148,10 @@ export const createOrder = async (req, res) => {
     💰 <b>Total:</b> ${order.totalPrice}
     📦 <b>Order #:</b> <code>${order.orderNumber}</code>
     🕒 <b>Date:</b> ${new Date().toLocaleString()}
-    `
+    `,
+        [
+          [{ text: "📦 View Order Details", callback_data: `ORD-${order.orderNumber}` }],
+        ]
       );
     }
 
