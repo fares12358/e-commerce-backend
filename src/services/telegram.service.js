@@ -29,6 +29,7 @@ export const sendTelegramMessage = async (chatId, text, buttons = null) => {
     await axios.post(`${process.env.BOT_API}/telegram/send`, payload);
 
   } catch (error) {
+    
     console.error("Telegram Error:", error.response?.data || error.message);
   }
 };
