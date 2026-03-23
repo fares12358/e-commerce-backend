@@ -30,8 +30,6 @@ const corsOptions = {
   credentials: true
 };
 
-// ✅ Preflight must use the same config as the main middleware
-app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
 app.use(express.json());
