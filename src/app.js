@@ -2,10 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import routes from './routes.js';
 import cookieParser from 'cookie-parser';
-// import errorHandler from './middlewares/error.middleware.js';
 
 const app = express();
-
 app.set('trust proxy', 1);
 
 const allowedOrigins = [
@@ -20,24 +18,25 @@ const allowedOrigins = [
   'https://dashboard.fares-dev.com'
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow Postman / server-side
-
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
-      callback(null, origin); // ✅ return the exact origin
+      callback(null, origin);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true
-}));
-app.options('*', cors());
+};
+
+// ✅ Preflight must use the same config as the main middleware
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api', routes);
-// app.use(errorHandler);
 
 export default app;
