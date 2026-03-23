@@ -27,9 +27,20 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  // ✅ Add this
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
+// ✅ Add this middleware to always set Vary: Origin
+app.use((req, res, next) => {
+  res.setHeader('Vary', 'Origin');
+  next();
+});
+
+app.options('/(.*)', cors(corsOptions));
 app.use(cors(corsOptions));
 
 app.use(express.json());
