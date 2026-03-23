@@ -75,7 +75,7 @@ export const adminLogin = async (req, res) => {
 /* ================= ADMIN LOGOUT ================= */
 export const adminLogout = async (req, res) => {
   try {
-    res.clearCookie('admin_token');
+    res.clearCookie(process.env.COOKIE_NAME);
 
     return res.status(200).json({
       success: true,
