@@ -6,8 +6,11 @@ import sendEmail from '../../utils/sendEmail.js';
 import Config from './config.model.js';
 import Content from './content.modle.js';
 import adminModel from './admin.model.js';
+import Controllers from '../contorlles/contorlles.model.js';
 
 /* ================= UTIL: SEND ADMIN TOKEN ================= */
+const ADMIN_COOKIE = () => process.env.ADMIN_COOKIE_NAME || 'ksk_admin';
+
 const sendAdminToken = (admin, res) => {
   const token = jwt.sign(
     { id: admin._id, role: 'admin' },
@@ -15,11 +18,14 @@ const sendAdminToken = (admin, res) => {
     { expiresIn: process.env.JWT_EXPIRES }
   );
 
-  res.cookie(process.env.COOKIE_NAME, token, {
+  // Use ADMIN_COOKIE_NAME so the admin session cookie never collides with
+  // the user session cookie (COOKIE_NAME) when both apps share localhost.
+  res.cookie(ADMIN_COOKIE(), token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/'
   });
 
   return res.status(200).json({
@@ -75,7 +81,12 @@ export const adminLogin = async (req, res) => {
 /* ================= ADMIN LOGOUT ================= */
 export const adminLogout = async (req, res) => {
   try {
-    res.clearCookie(process.env.COOKIE_NAME);
+    res.clearCookie(ADMIN_COOKIE(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/'
+    });
 
     return res.status(200).json({
       success: true,
@@ -461,6 +472,43 @@ export const updateSection = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'خطأ سيرفر' });
+  }
+};
+
+/* ================= GET / TOGGLE REFUND FLAG [v1.0.4] ================= */
+
+export const getRefundFlag = async (req, res) => {
+  try {
+    const ctrl = await Controllers.findOne().select('refund').lean();
+    return res.status(200).json({
+      success: true,
+      data: { refund: ctrl?.refund ?? false },
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const updateRefundFlag = async (req, res) => {
+  try {
+    const { refund } = req.body;
+    if (typeof refund !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'refund must be a boolean' });
+    }
+    const ctrl = await Controllers.findOneAndUpdate(
+      {},
+      { $set: { refund } },
+      { new: true, upsert: true }
+    );
+    return res.status(200).json({
+      success: true,
+      message: refund ? 'Refund feature enabled' : 'Refund feature disabled',
+      data: { refund: ctrl.refund },
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 

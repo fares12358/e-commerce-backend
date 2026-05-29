@@ -37,14 +37,22 @@ const controllersSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    
+
     invoice: {
+      type: Boolean,
+      default: false,
+    },
+
+    /* [v1.0.4] Master switch for the refund feature.
+       When false: POST /orders/:id/refund returns 403.
+       Admin toggles this in Profile → Store Settings. */
+    refund: {
       type: Boolean,
       default: false,
     },
   },
   {
-    timestamps: true, // auto createdAt & updatedAt
+    timestamps: true,
   }
 );
 

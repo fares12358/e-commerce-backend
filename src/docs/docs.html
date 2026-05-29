@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce API Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-block {
+            font-family: 'Fira Code', monospace;
+        }
+        .method-badge {
+            @apply rounded-md text-xs font-semibold px-3 py-1 uppercase tracking-wider;
+        }
+        .method-GET {
+            @apply bg-blue-100 text-blue-800;
+        }
+        .method-POST {
+            @apply bg-green-100 text-green-800;
+        }
+        .method-PUT {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .method-PATCH {
+            @apply bg-purple-100 text-purple-800;
+        }
+        .method-DELETE {
+            @apply bg-red-100 text-red-800;
+        }
+        .auth-badge {
+            @apply rounded-md text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-800;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <!-- Hero Section -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tight">API Reference</h1>
+                <p class="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">
+                    Complete guide to integrating with our e-commerce platform API
+                </p>
+                <div class="mt-6 inline-flex items-center bg-slate-800 text-slate-100 rounded-lg px-4 py-2">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    <span class="code-block">Base URL: https://api.example.com</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Authentication Section -->
+        <section id="auth" class="mb-20">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold">Authentication</h2>
+            </div>
+            <div class="border-b border-slate-200 mb-8"></div>
+
+            <!-- Endpoint 1 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-POST">POST</span>
+                        <span class="code-block ml-4 text-slate-900">/api/auth/register/send-otp</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Sends a one-time password (OTP) to the user for registration.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Request Body</h4>
+                            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "email": "user@example.com",
+  "phone": "+1234567890"
+}</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Parameters</h4>
+                            <div class="space-y-2">
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">email</span>
+                                    <span class="text-slate-600 ml-2">string, required</span>
+                                    <p class="text-sm text-slate-600 mt-1">The email address to send OTP to</p>
+                                </div>
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">phone</span>
+                                    <span class="text-slate-600 ml-2">string, required</span>
+                                    <p class="text-sm text-slate-600 mt-1">The phone number to send OTP to</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 2 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-POST">POST</span>
+                        <span class="code-block ml-4 text-slate-900">/api/auth/register/verify-otp</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Verifies the OTP and completes the registration process.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Request Body</h4>
+                            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "email": "user@example.com",
+  "phone": "+1234567890",
+  "otp": "123456",
+  "password": "securePassword123"
+}</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Parameters</h4>
+                            <div class="space-y-2">
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">email</span>
+                                    <span class="text-slate-600 ml-2">string, required</span>
+                                </div>
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">phone</span>
+                                    <span class="text-slate-600 ml-2">string, required</span>
+                                </div>
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">otp</span>
+                                    <span class="text-slate-600 ml-2">string, required</span>
+                                </div>
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">password</span>
+                                    <span class="text-slate-600 ml-2">string, required</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 3 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-POST">POST</span>
+                        <span class="code-block ml-4 text-slate-900">/api/auth/login</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Logs in a user and returns a JWT token.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Request Body</h4>
+                            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Response</h4>
+                            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "token": "jwt_token_here",
+  "user": {
+    "id": "user_id",
+    "name": "User Name",
+    "email": "user@example.com"
+  }
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 4 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/auth/me</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets the current user's profile information.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "id": "user_id",
+  "name": "User Name",
+  "email": "user@example.com",
+  "created_at": "2023-01-01T00:00:00Z"
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users" class="mb-20">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold">Users</h2>
+            </div>
+            <div class="border-b border-slate-200 mb-8"></div>
+
+            <!-- Endpoint 5 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/users/me</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets the current user's profile information.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 6 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/users</span>
+                    </div>
+                    <span class="auth-badge">Admin</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets all users (admin only).</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Admin privileges
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 7 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-PUT">PUT</span>
+                        <span class="code-block ml-4 text-slate-900">/api/users/me</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Updates the current user's profile information.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "name": "Updated Name",
+  "email": "newemail@example.com",
+  "phone": "+1234567890"
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products" class="mb-20">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold">Products</h2>
+            </div>
+            <div class="border-b border-slate-200 mb-8"></div>
+
+            <!-- Endpoint 8 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/products</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets all public products.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Query Parameters</h4>
+                            <div class="space-y-2">
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">limit</span>
+                                    <span class="text-slate-600 ml-2">integer</span>
+                                    <p class="text-sm text-slate-600 mt-1">Maximum number of results (default: 20)</p>
+                                </div>
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">offset</span>
+                                    <span class="text-slate-600 ml-2">integer</span>
+                                    <p class="text-sm text-slate-600 mt-1">Number of items to skip for pagination</p>
+                                </div>
+                                <div class="bg-slate-50 rounded-md p-3">
+                                    <span class="font-medium text-slate-900">search</span>
+                                    <span class="text-slate-600 ml-2">string</span>
+                                    <p class="text-sm text-slate-600 mt-1">Search term to filter products</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Response</h4>
+                            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "products": [
+    {
+      "id": "product_id",
+      "name": "Product Name",
+      "price": 29.99,
+      "currency": "USD",
+      "image": "https://example.com/image.jpg",
+      "description": "Product description"
+    }
+  ],
+  "total": 50,
+  "limit": 20,
+  "offset": 0
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 9 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/products/details/:id</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets detailed product information by ID.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Path Parameters</h4>
+                            <div class="bg-slate-50 rounded-md p-3">
+                                <span class="font-medium text-slate-900">id</span>
+                                <span class="text-slate-600 ml-2">string, required</span>
+                                <p class="text-sm text-slate-600 mt-1">The product ID</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Response</h4>
+                            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "id": "product_id",
+  "name": "Product Name",
+  "description": "Detailed product description",
+  "price": 29.99,
+  "currency": "USD",
+  "images": ["https://example.com/image1.jpg"],
+  "attributes": [
+    {
+      "name": "Color",
+      "value": "Blue"
+    }
+  ],
+  "category": {
+    "id": "category_id",
+    "name": "Electronics"
+  }
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 10 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-POST">POST</span>
+                        <span class="code-block ml-4 text-slate-900">/api/products</span>
+                    </div>
+                    <span class="auth-badge">Admin</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Creates a new product (admin only).</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Admin privileges
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "name": "New Product",
+  "description": "Product description",
+  "price": 29.99,
+  "currency": "USD",
+  "category_id": "category_id",
+  "images": ["image_url"],
+  "attributes": [
+    {
+      "name": "Color",
+      "value": "Blue"
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Orders Section -->
+        <section id="orders" class="mb-20">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold">Orders</h2>
+            </div>
+            <div class="border-b border-slate-200 mb-8"></div>
+
+            <!-- Endpoint 11 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-POST">POST</span>
+                        <span class="code-block ml-4 text-slate-900">/api/orders</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Creates a new order.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "items": [
+    {
+      "product_id": "product_id",
+      "quantity": 2,
+      "price": 29.99
+    }
+  ],
+  "shipping_address": {
+    "street": "123 Main St",
+    "city": "New York",
+    "state": "NY",
+    "zip": "10001",
+    "country": "US"
+  }
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 12 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/orders/my</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets the current user's orders.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "orders": [
+    {
+      "id": "order_id",
+      "status": "pending",
+      "total": 59.98,
+      "created_at": "2023-01-01T00:00:00Z",
+      "items": [...]
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 13 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-PATCH">PATCH</span>
+                        <span class="code-block ml-4 text-slate-900">/api/orders/:id/status</span>
+                    </div>
+                    <span class="auth-badge">Admin</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Updates order status (admin only).</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Admin privileges
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Path Parameters</h4>
+                            <div class="bg-slate-50 rounded-md p-3">
+                                <span class="font-medium text-slate-900">id</span>
+                                <span class="text-slate-600 ml-2">string, required</span>
+                                <p class="text-sm text-slate-600 mt-1">The order ID</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Request Body</h4>
+                            <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "status": "shipped"
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cart Section -->
+        <section id="cart" class="mb-20">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold">Cart</h2>
+            </div>
+            <div class="border-b border-slate-200 mb-8"></div>
+
+            <!-- Endpoint 14 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/cart</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets the current user's cart.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "items": [
+    {
+      "id": "cart_item_id",
+      "product_id": "product_id",
+      "name": "Product Name",
+      "price": 29.99,
+      "quantity": 2,
+      "total": 59.98
+    }
+  ],
+  "subtotal": 59.98,
+  "tax": 4.80,
+  "total": 64.78
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 15 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-POST">POST</span>
+                        <span class="code-block ml-4 text-slate-900">/api/cart/add</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Adds an item to the current user's cart.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "product_id": "product_id",
+  "quantity": 1,
+  "attributes": [
+    {
+      "name": "Color",
+      "value": "Blue"
+    }
+  ]
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 16 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-PUT">PUT</span>
+                        <span class="code-block ml-4 text-slate-900">/api/cart/update</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Updates a cart item.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "item_id": "cart_item_id",
+  "quantity": 3
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 17 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-DELETE">DELETE</span>
+                        <span class="code-block ml-4 text-slate-900">/api/cart/remove/:itemId</span>
+                    </div>
+                    <span class="auth-badge">Required</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Removes an item from the cart.</p>
+                    
+                    <div class="bg-slate-100 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-slate-700">
+                            <span class="font-medium">Authentication required:</span> Bearer token in Authorization header
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Path Parameters</h4>
+                            <div class="bg-slate-50 rounded-md p-3">
+                                <span class="font-medium text-slate-900">itemId</span>
+                                <span class="text-slate-600 ml-2">string, required</span>
+                                <p class="text-sm text-slate-600 mt-1">The cart item ID</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-700 mb-2">Response</h4>
+                            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                                <p class="text-green-700 text-sm">Item removed successfully</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="mb-20">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold">Contact</h2>
+            </div>
+            <div class="border-b border-slate-200 mb-8"></div>
+
+            <!-- Endpoint 18 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-POST">POST</span>
+                        <span class="code-block ml-4 text-slate-900">/api/contact</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Sends a contact message.</p>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "subject": "Support Request",
+  "message": "I need help with my order"
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Section -->
+        <section id="data" class="mb-20">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold">Data</h2>
+            </div>
+            <div class="border-b border-slate-200 mb-8"></div>
+
+            <!-- Endpoint 19 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/data</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets website initialization data.</p>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "site_name": "E-commerce Store",
+  "logo": "https://example.com/logo.png",
+  "settings": {
+    "currency": "USD",
+    "language": "en"
+  },
+  "categories": [...],
+  "featured_products": [...]
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Endpoint 20 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6 transition-all duration-200 hover:border-slate-300">
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="method-badge method-GET">GET</span>
+                        <span class="code-block ml-4 text-slate-900">/api/data/shell</span>
+                    </div>
+                    <span class="auth-badge">Optional</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-slate-700 mb-4">Gets shell configuration data.</p>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 text-slate-300 code-block text-sm overflow-x-auto scrollbar-hide">
+<pre>{
+  "navigation": [
+    {
+      "label": "Home",
+      "url": "/"
+    },
+    {
+      "label": "Products",
+      "url": "/products"
+    }
+  ],
+  "footer": {
+    "links": [...],
+    "social": [...]
+  }
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="text-center">
+                <p class="text-slate-600">
+                    Need help? Check out our 
+                    <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">support documentation</a> 
+                    or 
+                    <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">contact us</a>.
+                </p>
+                <p class="mt-4 text-sm text-slate-500">
+                    © 2023 E-commerce API Documentation. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

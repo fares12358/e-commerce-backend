@@ -13,7 +13,9 @@ import {
   updateSection,
   deleteSection,
   getContent,
-  updateMainContent
+  updateMainContent,
+  getRefundFlag,      // [v1.0.4]
+  updateRefundFlag,   // [v1.0.4]
 } from './admin.controller.js';
 
 import { protectAdmin } from './admin.auth.js';
@@ -26,6 +28,10 @@ router.get('/dashboard', protectAdmin, adminDashboard);
 router.put('/profile', protectAdmin, updateAdminProfile);
 router.put('/config', protectAdmin, updateConfig);
 router.get('/config', protectAdmin, getConfig);
+
+/* [v1.0.4] Refund feature flag — admin-only */
+router.get('/refund-flag',  protectAdmin, getRefundFlag);
+router.put('/refund-flag',  protectAdmin, updateRefundFlag);
 
 // Public route - for website
 // Admin routes

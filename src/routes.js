@@ -17,6 +17,7 @@ import contactRoutes from './modules/contact/contact.routes.js';
 import notificationRoutes from './modules/notification/notificationRoutes.routes.js';
 import contorllesRoutes from './modules/contorlles/contorlles.routes.js';
 import telegramRoutes from './modules/telegram/telegram.api.routes.js';
+import docRoutes from './docs/docs.routes.js';
 import { checkBackendStatus } from './middlewares/checkBackendStatus.js';
 
 const router = express.Router();
@@ -32,6 +33,8 @@ router.use('/admin/dashboard', dashboardRoutes);
 router.use('/admin/ads', adsRoutes);
 
 router.use('/telegram', telegramRoutes);
+
+router.use('/docs', docRoutes);
 
 router.use('/data', dataRoutes);
 router.use('/users', userRoutes);

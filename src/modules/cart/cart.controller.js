@@ -4,8 +4,13 @@ import Product from '../product/product.model.js';
 /* ================= GET MY CART ================= */
 export const getMyCart = async (req, res) => {
   try {
+    // .lean() returns plain JS object — faster serialization, lower memory
     const cart = await Cart.findOne({ userId: req.user._id })
-      .populate('items.productId');
+      .populate({
+        path: 'items.productId',
+        select: 'name price images stock isActive',   // only fetch what we need
+      })
+      .lean();
 
     if (!cart || cart.items.length === 0) {
       return res.status(200).json({
@@ -15,20 +20,22 @@ export const getMyCart = async (req, res) => {
       });
     }
 
-    const items = cart.items.map(item => {
-      const product = item.productId;
-
-      return {
-        itemId: item._id, // ✅ ID الحقيقي للسلة
-        productId: product._id,
-        name: product.name,
-        price: product.price,
-        image: product.images?.[0]?.url || null,
-        stock: product.stock,
-        quantity: item.quantity,
-        selections: item.selections
-      };
-    });
+    // Filter out any cart items whose product was deleted or deactivated
+    const items = cart.items
+      .filter(item => item.productId && item.productId.isActive)
+      .map(item => {
+        const product = item.productId;
+        return {
+          itemId: item._id,
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          image: product.images?.[0]?.url || null,
+          stock: product.stock,
+          quantity: item.quantity,
+          selections: item.selections
+        };
+      });
 
     return res.status(200).json({
       success: true,
@@ -37,14 +44,13 @@ export const getMyCart = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('getMyCart error:', error);
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء جلب السلة'
     });
   }
 };
-
-
 
 /* ================= ADD TO CART ================= */
 export const addToCart = async (req, res) => {
@@ -58,7 +64,7 @@ export const addToCart = async (req, res) => {
       });
     }
 
-    const product = await Product.findById(productId);
+    const product = await Product.findById(productId).lean();
 
     if (!product || !product.isActive) {
       return res.status(404).json({
@@ -74,6 +80,12 @@ export const addToCart = async (req, res) => {
       });
     }
 
+    // Sort selections to prevent false duplicate detection due to key order differences
+    const sortedSelections = [...selections].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
+    // findOne without .lean() because we need to call .save()
     let cart = await Cart.findOne({ userId: req.user._id });
 
     if (!cart) {
@@ -82,11 +94,6 @@ export const addToCart = async (req, res) => {
         items: []
       });
     }
-
-    // ترتيب selections لمنع اختلاف الترتيب
-    const sortedSelections = [...selections].sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
 
     const existingItem = cart.items.find(item =>
       item.productId.toString() === productId &&
@@ -120,15 +127,13 @@ export const addToCart = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
+    console.error('addToCart error:', error);
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء إضافة المنتج'
     });
   }
 };
-
-
 
 /* ================= UPDATE CART ITEM ================= */
 export const updateCartItem = async (req, res) => {
@@ -160,7 +165,15 @@ export const updateCartItem = async (req, res) => {
       });
     }
 
-    const product = await Product.findById(item.productId);
+    // Use .lean() for the stock check — read-only, no need for full document
+    const product = await Product.findById(item.productId).select('stock').lean();
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'المنتج غير موجود'
+      });
+    }
 
     if (quantity > product.stock) {
       return res.status(400).json({
@@ -170,7 +183,6 @@ export const updateCartItem = async (req, res) => {
     }
 
     item.quantity = quantity;
-
     await cart.save();
 
     return res.status(200).json({
@@ -179,7 +191,7 @@ export const updateCartItem = async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
+    console.error('updateCartItem error:', err);
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء التحديث'
@@ -191,7 +203,7 @@ export const updateCartItem = async (req, res) => {
 export const removeFromCart = async (req, res) => {
   try {
     const { itemId } = req.params;
-    
+
     const cart = await Cart.findOne({ userId: req.user._id });
 
     if (!cart) {
@@ -222,14 +234,13 @@ export const removeFromCart = async (req, res) => {
     });
 
   } catch (err) {
+    console.error('removeFromCart error:', err);
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء الحذف'
     });
   }
 };
-
-
 
 /* ================= CLEAR CART ================= */
 export const clearCart = async (req, res) => {
@@ -252,6 +263,7 @@ export const clearCart = async (req, res) => {
     });
 
   } catch (err) {
+    console.error('clearCart error:', err);
     return res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء تفريغ السلة'
